@@ -1,0 +1,49 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: client-portal-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/client_portal}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/client-portal}
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  security:
+    disable: ${DISABLE_AUTH:false}
+    # Accept tokens issued by either the internal docker hostname or the host-mapped localhost
+    accepted-issuers: ${ACCEPTED_ISSUERS:http://keycloak:8080/realms/client-portal,http://localhost:8081/realms/client-portal}
+  keycloak:
+    roles:
+      admin: ADMIN
+      lead: LEAD_DEV
+      client: CLIENT
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.hibernate.SQL: INFO

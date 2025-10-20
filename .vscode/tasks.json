@@ -1,0 +1,199 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build backend with Maven",
+			"type": "shell",
+			"command": "mvn -q -f backend/pom.xml clean package",
+			"problemMatcher": [
+				"$maven"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build frontend workspace",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$eslint - stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build frontend workspace (updated)",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Build frontend workspace (updates)",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Build frontend workspace (admin pages)",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Build frontend after reorg",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build frontend after removing legacy",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build frontend after cleanup",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build frontend after workspace cleanup",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build frontend after file clearing",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build frontend after final blanking",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"group": "build"
+		},
+		{
+			"label": "Start compose watch",
+			"type": "shell",
+			"command": "docker compose watch",
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"group": "build"
+		},
+		{
+			"label": "Typecheck frontend",
+			"type": "shell",
+			"command": "npm -s --prefix frontend run build",
+			"group": "build"
+		}
+	]
+}

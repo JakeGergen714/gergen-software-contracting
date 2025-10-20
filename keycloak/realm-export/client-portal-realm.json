@@ -1,0 +1,61 @@
+{
+  "realm": "client-portal",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      { "name": "ADMIN" },
+      { "name": "LEAD_DEV" },
+      { "name": "CLIENT" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "client-portal-web",
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "client-portal-api",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "redirectUris": [
+        "http://localhost:8080/*"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@example.com",
+      "email": "admin@example.com",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [ { "type": "password", "value": "admin" } ],
+      "realmRoles": ["ADMIN"]
+    },
+    {
+      "username": "lead@example.com",
+      "email": "lead@example.com",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [ { "type": "password", "value": "lead" } ],
+      "realmRoles": ["LEAD_DEV"]
+    },
+    {
+      "username": "client@example.com",
+      "email": "client@example.com",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [ { "type": "password", "value": "client" } ],
+      "realmRoles": ["CLIENT"]
+    }
+  ]
+}

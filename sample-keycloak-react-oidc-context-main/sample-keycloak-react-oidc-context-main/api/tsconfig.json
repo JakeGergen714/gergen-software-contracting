@@ -1,0 +1,7 @@
+{
+  // See https://www.npmjs.com/package/@tsconfig/node24
+  "extends": "@tsconfig/node24/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist"
+  }
+}
