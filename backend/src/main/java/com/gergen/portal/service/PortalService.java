@@ -1,0 +1,317 @@
+package com.gergen.portal.service;
+// test marker
+
+import com.gergen.portal.api.dto.BusinessDto;
+import com.gergen.portal.api.dto.BusinessOverviewDto;
+import com.gergen.portal.api.dto.EpicDto;
+import com.gergen.portal.api.dto.MeetingDto;
+import com.gergen.portal.api.dto.ProjectDetailDto;
+import com.gergen.portal.api.dto.ProjectSummaryDto;
+import com.gergen.portal.api.dto.SprintDto;
+import com.gergen.portal.api.dto.StoryDto;
+import com.gergen.portal.api.dto.request.AdvanceProjectStageRequest;
+import com.gergen.portal.api.dto.request.CreateEpicRequest;
+import com.gergen.portal.api.dto.request.CreateProjectRequest;
+import com.gergen.portal.api.dto.request.CreateSprintRequest;
+import com.gergen.portal.api.dto.request.CreateStoryRequest;
+import com.gergen.portal.api.dto.request.EndSprintRequest;
+import com.gergen.portal.api.dto.request.ScheduleMeetingRequest;
+import com.gergen.portal.api.dto.request.UpdateEpicRequest;
+import com.gergen.portal.api.dto.request.UpdateEpicStatusRequest;
+import com.gergen.portal.api.dto.request.UpdateStatusNoteRequest;
+import com.gergen.portal.api.dto.request.UpdateStoryRequest;
+import com.gergen.portal.api.dto.request.UpdateStoryStageRequest;
+import com.gergen.portal.domain.EpicStatus;
+import com.gergen.portal.domain.ProjectApprovalState;
+import com.gergen.portal.domain.ProjectStage;
+import com.gergen.portal.domain.SprintStatus;
+import com.gergen.portal.domain.StoryStage;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+public class PortalService {
+    private final PortalDataStore dataStore;
+
+    public PortalService(PortalDataStore dataStore) {
+        this.dataStore = dataStore;
+    }
+
+    public BusinessOverviewDto getBusinessOverview(UUID businessId) {
+        BusinessDto business = requireBusiness(businessId);
+        List<ProjectSummaryDto> projects = dataStore.listProjects(businessId);
+        return new BusinessOverviewDto(business, projects);
+    }
+
+    public List<ProjectSummaryDto> listProjects(UUID businessId) {
+        requireBusiness(businessId);
+        return dataStore.listProjects(businessId);
+    }
+
+    public ProjectDetailDto createProject(UUID businessId, CreateProjectRequest request) {
+        BusinessDto business = requireBusiness(businessId);
+        ProjectDetailDto project = new ProjectDetailDto();
+        project.setBusinessId(business.getId());
+        project.setName(request.getName());
+        project.setDescription(request.getDescription());
+        project.setKickoffCallAt(request.getKickoffCallAt());
+        project.setStage(ProjectStage.REQUIREMENTS);
+        project.setApprovalState(ProjectApprovalState.DRAFT);
+        project.setUpdatedAt(Instant.now());
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto getProject(UUID projectId) {
+        return requireProject(projectId);
+    }
+
+    public ProjectDetailDto scheduleMeeting(UUID projectId, ScheduleMeetingRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        MeetingDto meeting = new MeetingDto();
+        meeting.setId(UUID.randomUUID());
+        meeting.setProjectId(projectId);
+        meeting.setStage(request.getStage());
+        meeting.setScheduledAt(request.getScheduledAt());
+        meeting.setType(request.getType());
+        meeting.setLocationUrl(request.getLocationUrl());
+        meeting.setSummary(request.getSummary());
+        meeting.setNotes(request.getNotes());
+
+        project.getMeetings().add(meeting);
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto advanceProjectStage(UUID projectId, AdvanceProjectStageRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        project.setStage(request.getStage());
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto createEpic(UUID projectId, CreateEpicRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        EpicDto epic = new EpicDto();
+        epic.setId(UUID.randomUUID());
+        epic.setProjectId(projectId);
+        epic.setName(request.getName());
+        epic.setDescription(request.getDescription());
+        epic.setColor(request.getColor());
+        epic.setStatus(EpicStatus.PLANNED);
+        epic.setAcceptanceCriteria(request.getAcceptanceCriteria());
+        epic.setClientSummary(request.getClientSummary());
+        project.getEpics().add(epic);
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto updateEpic(UUID projectId, UUID epicId, UpdateEpicRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        EpicDto epic = findEpic(project, epicId);
+        Optional.ofNullable(request.getName()).ifPresent(epic::setName);
+        Optional.ofNullable(request.getDescription()).ifPresent(epic::setDescription);
+        Optional.ofNullable(request.getColor()).ifPresent(epic::setColor);
+        Optional.ofNullable(request.getAcceptanceCriteria()).ifPresent(epic::setAcceptanceCriteria);
+        Optional.ofNullable(request.getClientSummary()).ifPresent(epic::setClientSummary);
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto updateEpicStatus(UUID projectId, UUID epicId, UpdateEpicStatusRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        EpicDto epic = findEpic(project, epicId);
+        epic.setStatus(request.getStatus());
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto deleteEpic(UUID projectId, UUID epicId) {
+        ProjectDetailDto project = requireProject(projectId);
+        boolean removed = project.getEpics().removeIf(e -> e.getId().equals(epicId));
+        if (!removed) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Epic not found");
+        }
+        project.getStories().removeIf(story -> story.getEpicId().equals(epicId));
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto createStory(UUID projectId, CreateStoryRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        ensureEpicExists(project, request.getEpicId());
+        StoryDto story = new StoryDto();
+        story.setId(UUID.randomUUID());
+        story.setProjectId(projectId);
+        story.setEpicId(request.getEpicId());
+        story.setTitle(request.getTitle());
+        story.setDescription(request.getDescription());
+        story.setAcceptanceCriteria(request.getAcceptanceCriteria());
+        story.setStage(Optional.ofNullable(request.getStage()).orElse(StoryStage.BACKLOG));
+        story.setSprintId(request.getSprintId());
+        story.setPoints(request.getPoints());
+        story.setPlanningOrder(request.getPlanningOrder());
+        project.getStories().add(story);
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto updateStory(UUID projectId, UUID storyId, UpdateStoryRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        StoryDto story = findStory(project, storyId);
+        ensureEpicExists(project, request.getEpicId());
+        story.setEpicId(request.getEpicId());
+        story.setTitle(request.getTitle());
+        story.setDescription(request.getDescription());
+        story.setAcceptanceCriteria(request.getAcceptanceCriteria());
+        story.setPoints(request.getPoints());
+        story.setSprintId(request.getSprintId());
+        story.setStage(request.getStage());
+        story.setPlanningOrder(request.getPlanningOrder());
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto updateStoryStage(UUID projectId, UUID storyId, UpdateStoryStageRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        StoryDto story = findStory(project, storyId);
+        story.setStage(request.getStage());
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto deleteStory(UUID projectId, UUID storyId) {
+        ProjectDetailDto project = requireProject(projectId);
+        boolean removed = project.getStories().removeIf(story -> story.getId().equals(storyId));
+        if (!removed) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Story not found");
+        }
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto createSprint(UUID projectId, CreateSprintRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        SprintDto sprint = new SprintDto();
+        sprint.setId(UUID.randomUUID());
+        sprint.setProjectId(projectId);
+        sprint.setName(request.getName());
+        sprint.setGoal(request.getGoal());
+        sprint.setStartAt(request.getStartAt());
+        sprint.setEndAt(request.getEndAt());
+        sprint.setStatus(SprintStatus.PLANNED);
+        project.getSprints().add(sprint);
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto startSprint(UUID projectId, UUID sprintId) {
+        ProjectDetailDto project = requireProject(projectId);
+        Instant now = Instant.now();
+        boolean found = false;
+        for (SprintDto sprint : project.getSprints()) {
+            if (sprint.getId().equals(sprintId)) {
+                sprint.setStatus(SprintStatus.ACTIVE);
+                if (sprint.getStartAt() == null) {
+                    sprint.setStartAt(now);
+                }
+                found = true;
+            } else if (SprintStatus.ACTIVE.equals(sprint.getStatus())) {
+                sprint.setStatus(SprintStatus.COMPLETE);
+                if (sprint.getEndAt() == null) {
+                    sprint.setEndAt(now);
+                }
+            }
+        }
+        if (!found) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sprint not found");
+        }
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto endSprint(UUID projectId, UUID sprintId, EndSprintRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        SprintDto sprint = findSprint(project, sprintId);
+        Instant now = Instant.now();
+        sprint.setStatus(SprintStatus.COMPLETE);
+        if (sprint.getEndAt() == null) {
+            sprint.setEndAt(now);
+        }
+
+        List<SprintDto> sorted = project.getSprints().stream()
+                .sorted(Comparator.comparing(s -> Optional.ofNullable(s.getStartAt()).orElse(Instant.EPOCH)))
+                .collect(Collectors.toList());
+        int index = sorted.indexOf(sprint);
+        SprintDto nextSprint = index >= 0 && index + 1 < sorted.size() ? sorted.get(index + 1) : null;
+
+        for (StoryDto story : project.getStories()) {
+            if (!sprintId.equals(story.getSprintId()) || StoryStage.DONE.equals(story.getStage())) {
+                continue;
+            }
+            if (request.isMoveUnfinishedToNextSprint() && nextSprint != null) {
+                story.setSprintId(nextSprint.getId());
+                if (StoryStage.BACKLOG.equals(story.getStage())) {
+                    story.setStage(StoryStage.READY);
+                }
+            } else {
+                story.setSprintId(null);
+                story.setStage(StoryStage.BACKLOG);
+            }
+        }
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto deleteSprint(UUID projectId, UUID sprintId) {
+        ProjectDetailDto project = requireProject(projectId);
+        boolean removed = project.getSprints().removeIf(s -> s.getId().equals(sprintId));
+        if (!removed) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sprint not found");
+        }
+        project.getStories().forEach(story -> {
+            if (sprintId.equals(story.getSprintId())) {
+                story.setSprintId(null);
+            }
+        });
+        return dataStore.saveProject(project);
+    }
+
+    public ProjectDetailDto updateStatusNote(UUID projectId, UpdateStatusNoteRequest request) {
+        ProjectDetailDto project = requireProject(projectId);
+        project.setStatusNote(request.getStatusNote());
+        return dataStore.saveProject(project);
+    }
+
+    private BusinessDto requireBusiness(UUID businessId) {
+        return dataStore.findBusiness(businessId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Business not found"));
+    }
+
+    private ProjectDetailDto requireProject(UUID projectId) {
+        return dataStore.findProject(projectId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
+    }
+
+    private EpicDto findEpic(ProjectDetailDto project, UUID epicId) {
+        return project.getEpics().stream()
+                .filter(epic -> epic.getId().equals(epicId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Epic not found"));
+    }
+
+    private StoryDto findStory(ProjectDetailDto project, UUID storyId) {
+        return project.getStories().stream()
+                .filter(story -> story.getId().equals(storyId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Story not found"));
+    }
+
+    private SprintDto findSprint(ProjectDetailDto project, UUID sprintId) {
+        return project.getSprints().stream()
+                .filter(sprint -> sprint.getId().equals(sprintId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sprint not found"));
+    }
+
+    private void ensureEpicExists(ProjectDetailDto project, UUID epicId) {
+        project.getEpics().stream()
+                .filter(epic -> epic.getId().equals(epicId))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Epic not found on project"));
+    }
+}

@@ -9,8 +9,8 @@ This monorepo contains:
 
 Quickstart (dev):
 
-1. Copy .env.example to .env and adjust if needed
-2. Run with Docker Compose
+1. Copy `frontend/.env.example` → `frontend/.env` (override URLs/client IDs if you run on something other than localhost)
+2. Build + launch all services with Docker Compose
 
 Windows PowerShell:
 
@@ -22,15 +22,15 @@ docker compose up --build
 Services:
 
 - Postgres: localhost:5432 (postgres/postgres)
-- Keycloak: http://localhost:8081 (admin/admin)
-- API: http://localhost:8080
-- Web: http://localhost:5173
+- Keycloak: http://localhost:8081 (admin/admin) — realm + demo data auto-imported
+- API: http://localhost:8080 (auth enforced, JWTs from Keycloak)
+- Web: http://localhost:5173 (Vite dev server inside Docker)
 
-Login with demo users:
+Portal demo users (Keycloak realm `client-portal`):
 
-- admin@example.com / admin
-- lead@example.com / lead
-- client@example.com / client
+- admin@example.com / admin (ROLE_ADMIN)
+- lead@example.com / lead (ROLE_CLIENT_OWNER)
+- client@example.com / client (ROLE_CLIENT_MEMBER)
 
 Keycloak realm auto-imports on first start.
 
@@ -40,6 +40,50 @@ Notes:
 
 - Seed data inserts placeholder Keycloak user IDs (emails). For real per-project checks, map actual Keycloak subject IDs after login.
 - Emails are disabled by default (Spring Mail points at localhost). Configure SMTP in env vars to send.
+- `docker-compose.yml` now runs the API with auth enabled (`DISABLE_AUTH=false`). If you need anonymous access during debugging, override that env.
+
+## 🔧 Configuration Reference
+
+| Component | Variable                                                    | Default                                         | Purpose                                                            |
+| --------- | ----------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------ |
+| backend   | `SPRING_DATASOURCE_URL`                                     | `jdbc:postgresql://postgres:5432/client_portal` | JDBC connection inside Docker                                      |
+| backend   | `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` | `postgres`                                      | DB credentials                                                     |
+| backend   | `KEYCLOAK_ISSUER_URI`                                       | `http://keycloak:8080/realms/client-portal`     | Internal issuer for JWT validation                                 |
+| backend   | `CORS_ALLOWED_ORIGINS`                                      | `http://localhost:5173`                         | Browser origins allowed to hit the API                             |
+| backend   | `DISABLE_AUTH`                                              | `false`                                         | Toggles DevSecurityConfig (should remain false except for testing) |
+| frontend  | `VITE_API_BASE_URL`                                         | `http://localhost:8080`                         | Root API URL (no trailing slash)                                   |
+| frontend  | `VITE_KEYCLOAK_URL`                                         | `http://localhost:8081`                         | Browser-facing Keycloak base URL                                   |
+| frontend  | `VITE_KEYCLOAK_REALM`                                       | `client-portal`                                 | Realm to use                                                       |
+| frontend  | `VITE_KEYCLOAK_CLIENT_ID`                                   | `client-portal-web`                             | Public SPA client                                                  |
+| frontend  | `VITE_PORTAL_BUSINESS_ID`                                   | `11111111-1111-1111-1111-111111111111`          | Business UUID that matches backend seed data                       |
+
+Set the Vite variables either via `frontend/.env` (local dev) or Docker env/ARGs. The docker-compose definition already provides sane defaults for running the whole stack on localhost.
+
+## 🧭 Browser end-to-end tests (Playwright)
+
+Requirements
+
+1. Stack running locally (`docker compose up --build`) so the SPA, API, Keycloak, and Postgres are reachable.
+2. Copy `frontend/.env.e2e.example` → `frontend/.env.e2e` if you change demo credentials or hostnames.
+3. Install Playwright browser binaries once per machine: `npx playwright install` (run from `frontend/`).
+
+Run headless tests from the repo root:
+
+```powershell
+# Execute from the repo root
+docker compose up --build -d
+npm --prefix frontend install
+npx --prefix frontend playwright install   # first run only
+npm --prefix frontend run test:e2e
+```
+
+Debug options:
+
+- `npm --prefix frontend run test:e2e -- --headed --project=chromium`
+- `npm --prefix frontend run test:e2e:ui` to open Playwright Test Runner
+- Traces/screenshots live under `frontend/test-results/` after each run
+
+Tests currently automate Keycloak SSO (admin + client demo users) and then assert the relevant workspace renders. They will fail until the underlying auth/integration issue is resolved, giving you fast feedback each time you tweak the stack.
 
 License: MIT
 
