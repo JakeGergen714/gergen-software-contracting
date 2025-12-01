@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>OIDC Silent Renew</title>
+  </head>
+  <body>
+    <script>
+      // Inform react-oidc-context about the silent renew redirect
+      // See: https://authts.github.io/react-oidc-context/docs/advanced/silent_renew/
+      (function () {
+        var data = { source: 'react-oidc-context', url: window.location.href };
+        window.parent.postMessage(data, window.location.origin);
+      })();
+    </script>
+  </body>
+</html>

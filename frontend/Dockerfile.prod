@@ -1,0 +1,5 @@
+FROM scratch
+# Deprecated: Use the multistage Dockerfile instead.
+# This file is kept temporarily to avoid breaking any external references.
+# To build production now use:
+#   docker build --target prod -t gergen-frontend:prod .

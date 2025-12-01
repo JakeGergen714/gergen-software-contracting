@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "projects": [
+    {
+      "id": "coffee",
+      "name": "Coffee Machine App",
+      "productOverrides": {
+        "environments": {
+          "live": "https://coffee.example.com",
+          "admin": "https://coffee.example.com/admin"
+        }
+      }
+    },
+    {
+      "id": "bakery",
+      "name": "Bakery Queue",
+      "productOverrides": {
+        "quickActions": [
+          { "label": "Open dashboard", "href": "https://bakery.example.com" },
+          { "label": "Admin", "href": "https://bakery.example.com/admin" }
+        ],
+        "whereThingsAre": [
+          { "label": "Live", "href": "https://bakery.example.com" },
+          { "label": "Admin", "href": "https://bakery.example.com/admin" },
+          { "label": "Orders API", "href": "https://api.bakery.example.com" }
+        ],
+        "quickAnswers": [
+          { "q": "How do I reset a ticket?", "a": "Use the Reset action on the ticket page." },
+          { "q": "Do you support gift cards?", "a": "Yes, via the Stripe integration." }
+        ],
+        "integrations": [
+          { "name": "Stripe", "purpose": "Payments", "link": "https://dashboard.stripe.com" },
+          { "name": "Slack", "purpose": "Alerts", "link": "https://slack.com" }
+        ],
+        "environments": {
+          "live": "https://bakery.example.com",
+          "admin": "https://bakery.example.com/admin",
+          "status": "https://status.bakery.example.com"
+        }
+      }
+    }
+  ]
+}
