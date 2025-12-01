@@ -1,0 +1,21 @@
+# Maven
+target/
+*.jar
+*.war
+*.ear
+
+# Node
+node_modules/
+dist/
+build/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
