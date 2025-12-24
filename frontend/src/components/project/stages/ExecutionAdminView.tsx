@@ -31,22 +31,22 @@ export function ExecutionAdminView({ project }: { project: ProjectDetail }) {
             <button
               type='button'
               onClick={() => openSprint(activeSprint.id)}
-              className='rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-left'
+              className='rounded-2xl border border-brand-soft bg-brand-soft/50 p-4 text-left'
             >
-              <p className='text-xs uppercase text-emerald-600 font-semibold'>
+              <p className='text-xs uppercase text-brand-solid font-semibold'>
                 Active sprint
               </p>
-              <p className='text-lg font-semibold text-emerald-900'>
+              <p className='text-lg font-semibold text-brand-solid'>
                 {activeSprint.name}
               </p>
-              <p className='text-sm text-emerald-700'>{activeSprint.goal}</p>
-              <p className='text-xs text-emerald-600 mt-1'>
+              <p className='text-sm text-brand-solid'>{activeSprint.goal}</p>
+              <p className='text-xs text-brand-solid mt-1'>
                 {new Date(activeSprint.startAt).toLocaleDateString()} –
                 {new Date(activeSprint.endAt).toLocaleDateString()}
               </p>
             </button>
           ) : (
-            <div className='rounded-2xl border border-dashed border-slate-300 p-4 text-sm text-slate-500'>
+            <div className='rounded-2xl border border-dashed border-stone-300 p-4 text-sm text-stone-500'>
               No active sprint.
             </div>
           )}

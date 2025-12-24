@@ -8,7 +8,7 @@ function boolFromEnv(value: string | undefined, fallback: boolean): boolean {
   if (value === undefined) {
     return fallback;
   }
-  return value === 'true';
+  return value.toLowerCase() === 'true';
 }
 
 export const appConfig = {
@@ -18,4 +18,5 @@ export const appConfig = {
   keycloakClientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || DEFAULT_KEYCLOAK_CLIENT_ID,
   portalBusinessId: import.meta.env.VITE_PORTAL_BUSINESS_ID || DEFAULT_BUSINESS_ID,
   enableSilentSso: boolFromEnv(import.meta.env.VITE_ENABLE_SILENT_SSO, false),
+  mockAuth: boolFromEnv(import.meta.env.VITE_MOCK_AUTH, false),
 };

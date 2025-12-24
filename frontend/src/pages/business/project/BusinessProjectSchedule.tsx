@@ -1,5 +1,9 @@
 import { useMemo } from 'react';
 import { useProjectWorkspace } from '../../project/ProjectLayoutBase';
+import { Card } from '../../../components/ui/card';
+import { Stack } from '../../../components/ui/container';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
 
 interface SuggestedSlot {
   date: Date;
@@ -58,19 +62,15 @@ export default function BusinessProjectSchedule() {
   const slotList = slots.slice(0, 4);
 
   return (
-    <div className='space-y-6'>
-      <section className='rounded-2xl border border-white/80 bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.07)] grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]'>
-        <div className='space-y-3'>
-          <h2 className='text-2xl font-semibold text-slate-900'>Schedule</h2>
+    <Stack gap={6}>
+      <Card className='grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]'>
+        <Stack gap={3}>
+          <Heading level='h2'>Schedule</Heading>
           {nextMeeting ? (
             <div className='rounded-2xl border border-slate-100 bg-slate-50 p-4 flex flex-col gap-1'>
-              <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
-                Next on calendar
-              </p>
-              <p className='text-base font-semibold text-slate-900'>
-                {nextMeeting.type}
-              </p>
-              <p className='text-sm text-slate-600'>
+              <Text variant='eyebrow'>Next on calendar</Text>
+              <Text weight='semibold'>{nextMeeting.type}</Text>
+              <Text variant='small' className='text-slate-600'>
                 {new Date(nextMeeting.scheduledAt).toLocaleString(undefined, {
                   weekday: 'long',
                   month: 'short',
@@ -78,27 +78,36 @@ export default function BusinessProjectSchedule() {
                   hour: 'numeric',
                   minute: 'numeric',
                 })}
-              </p>
-              <p className='text-sm text-slate-600'>{nextMeeting.summary}</p>
-              <a
-                className='text-xs font-semibold text-sky-600'
-                href={nextMeeting.locationUrl}
-                target='_blank'
-                rel='noreferrer'
+              </Text>
+              <Text variant='small' className='text-slate-600'>
+                {nextMeeting.summary}
+              </Text>
+              <Button
+                variant='link'
+                className='p-0 h-auto justify-start text-sky-600'
+                asChild
               >
-                Join call
-              </a>
+                <a
+                  href={nextMeeting.locationUrl}
+                  target='_blank'
+                  rel='noreferrer'
+                >
+                  Join call
+                </a>
+              </Button>
             </div>
           ) : (
-            <p className='text-sm text-slate-500'>
+            <Text variant='small' className='text-slate-500'>
               No meetings scheduled; pick a slot below.
-            </p>
+            </Text>
           )}
-        </div>
+        </Stack>
         <div className='rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3'>
           <div className='flex items-center justify-between'>
-            <p className='text-sm font-semibold text-slate-900'>Open slots</p>
-            <span className='text-xs text-slate-500'>Updated daily</span>
+            <Text weight='semibold' variant='small'>
+              Open slots
+            </Text>
+            <Text variant='caption'>Updated daily</Text>
           </div>
           <ul className='space-y-2'>
             {slotList.map((slot, idx) => (
@@ -107,120 +116,119 @@ export default function BusinessProjectSchedule() {
                 className='flex items-center justify-between gap-4 rounded-xl border border-white bg-white px-3 py-2 text-sm text-slate-700'
               >
                 <div>
-                  <p className='font-semibold text-slate-900'>
+                  <Text weight='semibold'>
                     {slot.date.toLocaleDateString(undefined, {
                       weekday: 'short',
                       month: 'short',
                       day: 'numeric',
                     })}
-                  </p>
-                  <p className='text-xs text-slate-500'>{slot.window}</p>
+                  </Text>
+                  <Text variant='caption'>{slot.window}</Text>
                 </div>
-                <button
-                  type='button'
-                  className='rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100'
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='rounded-full h-7 text-xs'
                 >
                   Reserve
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
-          <p className='text-xs text-slate-500 text-center'>
+          <Text variant='caption' className='text-center'>
             Need something specific? scheduling@gergensoftware.com
-          </p>
+          </Text>
         </div>
-      </section>
+      </Card>
 
-      <section className='rounded-2xl border border-white/80 bg-white p-6 shadow-[0_15px_40px_rgba(15,23,42,0.06)]'>
-        <div className='flex flex-wrap items-center justify-between gap-3'>
-          <div>
-            <h3 className='text-xl font-semibold text-slate-900'>Timeline</h3>
+      <Card>
+        <Stack gap={4}>
+          <div className='flex flex-wrap items-center justify-between gap-3'>
+            <div>
+              <Heading level='h3'>Timeline</Heading>
+            </div>
+            <Text variant='caption'>
+              Showing {Math.min(upcoming.length, 3)} upcoming /{' '}
+              {Math.min(past.length, 3)} recent
+            </Text>
           </div>
-          <span className='text-xs text-slate-500'>
-            Showing {Math.min(upcoming.length, 3)} upcoming /{' '}
-            {Math.min(past.length, 3)} recent
-          </span>
-        </div>
-        <div className='mt-4 grid gap-6 md:grid-cols-2'>
-          <div className='space-y-2'>
-            <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
-              Next up
-            </p>
-            {upcoming.length > 0 ? (
-              <ul className='space-y-3'>
-                {upcoming.slice(0, 3).map((meeting) => (
-                  <li
-                    key={meeting.id}
-                    className='rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700'
-                  >
-                    <div className='flex items-center justify-between text-slate-900 font-semibold'>
-                      <span>{meeting.type}</span>
-                      <span>
-                        {new Date(meeting.scheduledAt).toLocaleString(
-                          undefined,
-                          {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: 'numeric',
-                            minute: 'numeric',
-                          }
-                        )}
-                      </span>
-                    </div>
-                    <p className='text-xs text-slate-500 mt-1'>
-                      {meeting.summary}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className='text-sm text-slate-500'>
-                No upcoming sessions yet.
-              </p>
-            )}
+          <div className='grid gap-6 md:grid-cols-2'>
+            <Stack gap={2}>
+              <Text variant='eyebrow'>Next up</Text>
+              {upcoming.length > 0 ? (
+                <ul className='space-y-3'>
+                  {upcoming.slice(0, 3).map((meeting) => (
+                    <li
+                      key={meeting.id}
+                      className='rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700'
+                    >
+                      <div className='flex items-center justify-between text-slate-900 font-semibold'>
+                        <span>{meeting.type}</span>
+                        <span>
+                          {new Date(meeting.scheduledAt).toLocaleString(
+                            undefined,
+                            {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: 'numeric',
+                            }
+                          )}
+                        </span>
+                      </div>
+                      <Text variant='caption' className='mt-1'>
+                        {meeting.summary}
+                      </Text>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Text variant='small' className='text-slate-500'>
+                  No upcoming sessions yet.
+                </Text>
+              )}
+            </Stack>
+            <Stack gap={2}>
+              <Text variant='eyebrow'>Latest notes</Text>
+              {past.length > 0 ? (
+                <ul className='space-y-3'>
+                  {past.slice(0, 3).map((meeting) => (
+                    <li
+                      key={meeting.id}
+                      className='rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700'
+                    >
+                      <div className='flex items-center justify-between text-slate-900 font-semibold'>
+                        <span>{meeting.type}</span>
+                        <span>
+                          {new Date(meeting.scheduledAt).toLocaleDateString(
+                            undefined,
+                            {
+                              month: 'short',
+                              day: 'numeric',
+                            }
+                          )}
+                        </span>
+                      </div>
+                      <Text variant='caption' className='mt-1'>
+                        {meeting.summary}
+                      </Text>
+                      {meeting.notes && (
+                        <Text variant='caption' className='text-slate-400 mt-1'>
+                          {meeting.notes}
+                        </Text>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Text variant='small' className='text-slate-500'>
+                  Recaps post after the first session.
+                </Text>
+              )}
+            </Stack>
           </div>
-          <div className='space-y-2'>
-            <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
-              Latest notes
-            </p>
-            {past.length > 0 ? (
-              <ul className='space-y-3'>
-                {past.slice(0, 3).map((meeting) => (
-                  <li
-                    key={meeting.id}
-                    className='rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700'
-                  >
-                    <div className='flex items-center justify-between text-slate-900 font-semibold'>
-                      <span>{meeting.type}</span>
-                      <span>
-                        {new Date(meeting.scheduledAt).toLocaleDateString(
-                          undefined,
-                          {
-                            month: 'short',
-                            day: 'numeric',
-                          }
-                        )}
-                      </span>
-                    </div>
-                    <p className='text-xs text-slate-500 mt-1'>
-                      {meeting.summary}
-                    </p>
-                    {meeting.notes && (
-                      <p className='text-xs text-slate-400 mt-1'>
-                        {meeting.notes}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className='text-sm text-slate-500'>
-                Recaps post after the first session.
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-    </div>
+        </Stack>
+      </Card>
+    </Stack>
   );
 }

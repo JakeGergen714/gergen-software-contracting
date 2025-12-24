@@ -11,6 +11,10 @@ import { ProjectDetail, ProjectStage } from '../../types/domain';
 import { useServices } from '../../context/ServiceContext';
 import { ProjectStageHeader } from '../../components/project/ProjectStageHeader';
 import { DomainModalProvider } from '../../components/domain/DomainModalProvider';
+import { Stack } from '../../components/ui/container';
+import { Card } from '../../components/ui/card';
+import { Heading, Text } from '../../components/ui/typography';
+import clsx from 'clsx';
 
 export type ProjectNavItem = {
   id: string;
@@ -114,77 +118,79 @@ export function ProjectLayoutBase({
   if (mode === 'admin') {
     return (
       <DomainModalProvider project={project} setProject={setProject}>
-        <div className='space-y-6'>
-          <section className='rounded-3xl bg-gradient-to-br from-slate-900 via-sky-900 to-slate-800 p-6 text-white shadow-[0_35px_80px_rgba(15,23,42,0.45)]'>
-            <div className='flex flex-wrap items-center justify-between gap-3'>
-              <div>
-                <p className='text-xs font-semibold uppercase tracking-[0.35em] text-white/70'>
-                  Project workspace
-                </p>
-                <h1 className='text-3xl font-bold tracking-tight'>
-                  {project.name}
-                </h1>
-                {project.description && (
-                  <p className='mt-1 text-sm text-white/70'>
-                    {project.description}
-                  </p>
-                )}
-              </div>
-              <Link
-                to='/admin'
-                className='rounded-full border border-white/30 px-3 py-1 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white'
-              >
-                Back to Admin
-              </Link>
-            </div>
-            <ProjectStageHeader project={project}>
-              {stageError && (
-                <div className='rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700'>
-                  {stageError}
+        <Stack gap={6}>
+          <section className='rounded-3xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 p-6 text-white shadow-[0_35px_80px_rgba(28,25,23,0.45)] border border-stone-800'>
+            <Stack gap={6}>
+              <div className='flex flex-wrap items-center justify-between gap-3'>
+                <div>
+                  <Text variant='eyebrow' className='text-white/70'>
+                    Project workspace
+                  </Text>
+                  <Heading level='h1' className='text-white tracking-tight'>
+                    {project.name}
+                  </Heading>
+                  {project.description && (
+                    <Text variant='body' className='mt-1 text-white/70'>
+                      {project.description}
+                    </Text>
+                  )}
                 </div>
-              )}
-            </ProjectStageHeader>
-            <nav
-              className='mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold'
-              aria-label='Admin project navigation'
-            >
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.id}
-                  to={item.id}
-                  className={({ isActive }) =>
-                    `rounded-full border px-4 py-1.5 shadow-sm transition ${
-                      isActive
-                        ? 'border-white/0 bg-white text-slate-900 shadow-[0_12px_30px_rgba(255,255,255,0.25)]'
-                        : 'border-white/20 text-white/80 hover:bg-white/10'
-                    }`
-                  }
-                  end={false}
+                <Link
+                  to='/admin'
+                  className='rounded-full border border-white/30 px-3 py-1 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white'
                 >
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
+                  Back to Admin
+                </Link>
+              </div>
+              <ProjectStageHeader project={project}>
+                {stageError && (
+                  <div className='rounded-2xl border border-brand-strong/20 bg-brand-strong/5 px-4 py-3 text-sm text-brand-strong'>
+                    {stageError}
+                  </div>
+                )}
+              </ProjectStageHeader>
+              <nav
+                className='mt-4 flex flex-wrap items-center gap-2 text-sm font-semibold'
+                aria-label='Admin project navigation'
+              >
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.id}
+                    to={item.id}
+                    className={({ isActive }) =>
+                      `rounded-full border px-4 py-1.5 shadow-sm transition ${
+                        isActive
+                          ? 'border-white/0 bg-white text-slate-900 shadow-[0_12px_30px_rgba(255,255,255,0.25)]'
+                          : 'border-white/20 text-white/80 hover:bg-white/10'
+                      }`
+                    }
+                    end={false}
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
+            </Stack>
           </section>
-          <div className='space-y-6'>
+          <Stack gap={6}>
             <Outlet context={outletContext} />
-          </div>
-        </div>
+          </Stack>
+        </Stack>
       </DomainModalProvider>
     );
   }
 
   return (
     <DomainModalProvider project={project} setProject={setProject}>
-      <div className='space-y-6'>
+      <Stack gap={6}>
         <ProjectStageHeader project={project}>
           {stageError && (
-            <div className='rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700'>
+            <div className='rounded-2xl border border-brand-strong/20 bg-brand-strong/5 px-4 py-3 text-sm text-brand-strong'>
               {stageError}
             </div>
           )}
         </ProjectStageHeader>
-        <div className='flex flex-wrap items-center gap-2 rounded-2xl border border-border-subtle/60 bg-surface px-4 py-3 text-sm font-semibold shadow-card'>
+        <Card className='px-4 py-3'>
           <nav
             className='flex flex-wrap items-center gap-2'
             aria-label='Project navigation'
@@ -194,11 +200,12 @@ export function ProjectLayoutBase({
                 key={item.id}
                 to={item.id}
                 className={({ isActive }) =>
-                  `rounded-full px-4 py-1.5 transition ${
+                  clsx(
+                    'rounded-full px-4 py-1.5 transition text-sm font-semibold',
                     isActive
-                      ? 'bg-sky-600 text-white shadow-[0_10px_20px_rgba(2,132,199,0.25)]'
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`
+                      ? 'bg-brand-solid text-white shadow-lg shadow-brand-solid/25'
+                      : 'text-text-secondary hover:bg-surface-muted'
+                  )
                 }
                 end={false}
               >
@@ -206,9 +213,9 @@ export function ProjectLayoutBase({
               </NavLink>
             ))}
           </nav>
-        </div>
+        </Card>
         <Outlet context={outletContext} />
-      </div>
+      </Stack>
     </DomainModalProvider>
   );
 }

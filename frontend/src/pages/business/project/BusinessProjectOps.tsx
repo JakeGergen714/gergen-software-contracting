@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
 import { useProjectWorkspace } from '../../project/ProjectLayoutBase';
+import { Card } from '../../../components/ui/card';
+import { Stack } from '../../../components/ui/container';
+import { Heading, Text } from '../../../components/ui/typography';
 
 interface TouchpointItem {
   id: string;
@@ -41,28 +44,30 @@ export default function BusinessProjectOps() {
   }, [project.epics, project.stories]);
 
   return (
-    <div className='space-y-6'>
-      <section className='rounded-3xl border border-white/80 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] grid gap-6 md:grid-cols-2'>
-        <div>
-          <p className='text-xs uppercase tracking-wide font-semibold text-slate-500'>
-            Operations pulse
-          </p>
-          <h2 className='text-2xl font-semibold text-slate-900 mt-1'>
-            What we are watching
-          </h2>
-          <p className='text-sm text-slate-600 mt-2'>{opsNotes}</p>
-          <div className='mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600'>
-            <p className='font-semibold text-slate-900'>Availability</p>
-            <p>
+    <Stack gap={6}>
+      <Card className='grid gap-6 md:grid-cols-2'>
+        <Stack gap={4}>
+          <Stack gap={2}>
+            <Text variant='eyebrow'>Operations pulse</Text>
+            <Heading level='h2' className='mt-1'>
+              What we are watching
+            </Heading>
+            <Text variant='body' className='text-slate-600 mt-2'>
+              {opsNotes}
+            </Text>
+          </Stack>
+          <div className='rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600'>
+            <Text weight='semibold' className='text-slate-900'>
+              Availability
+            </Text>
+            <Text variant='body'>
               Delivery hours are booked for the next sprint. Ping us if you need
               an urgent change.
-            </p>
+            </Text>
           </div>
-        </div>
+        </Stack>
         <div className='rounded-2xl border border-slate-100 bg-slate-50 p-4'>
-          <p className='text-xs uppercase tracking-wide font-semibold text-slate-500'>
-            Contact
-          </p>
+          <Text variant='eyebrow'>Contact</Text>
           <ul className='mt-3 space-y-3 text-sm text-slate-600'>
             <li>
               <span className='font-semibold text-slate-900'>Slack:</span>{' '}
@@ -80,14 +85,12 @@ export default function BusinessProjectOps() {
             </li>
           </ul>
         </div>
-      </section>
+      </Card>
 
-      <section className='rounded-3xl border border-white/80 bg-white p-6 shadow-[0_15px_40px_rgba(15,23,42,0.06)] grid gap-6 md:grid-cols-2'>
-        <div>
-          <h3 className='text-xl font-semibold text-slate-900'>
-            Recent touchpoints
-          </h3>
-          <div className='mt-4 space-y-3 max-h-[360px] overflow-y-auto pr-2'>
+      <Card className='grid gap-6 md:grid-cols-2'>
+        <Stack gap={4}>
+          <Heading level='h3'>Recent touchpoints</Heading>
+          <div className='space-y-3 max-h-[360px] overflow-y-auto pr-2'>
             {touchpoints.length > 0 ? (
               touchpoints.map((touch) => (
                 <article
@@ -98,23 +101,29 @@ export default function BusinessProjectOps() {
                     <span>{touch.type}</span>
                     <span>{touch.date.toLocaleDateString()}</span>
                   </div>
-                  <p className='text-sm font-semibold text-slate-900 mt-1'>
+                  <Text weight='semibold' className='text-slate-900 mt-1'>
                     {touch.summary}
-                  </p>
+                  </Text>
                 </article>
               ))
             ) : (
-              <p className='text-sm text-slate-500'>No calls logged yet.</p>
+              <Text variant='small' className='text-slate-500'>
+                No calls logged yet.
+              </Text>
             )}
           </div>
-        </div>
-        <div>
-          <h3 className='text-xl font-semibold text-slate-900'>Action items</h3>
-          <div className='mt-4 space-y-3'>
+        </Stack>
+        <Stack gap={4}>
+          <Heading level='h3'>Action items</Heading>
+          <div className='space-y-3'>
             <div className='rounded-2xl border border-amber-100 bg-amber-50 p-4'>
-              <p className='text-sm font-semibold text-amber-900'>
+              <Text
+                variant='small'
+                weight='semibold'
+                className='text-amber-900'
+              >
                 Approvals needed
-              </p>
+              </Text>
               {proactiveActions.awaitingApproval.length > 0 ? (
                 <ul className='mt-2 list-disc list-inside text-sm text-amber-800'>
                   {proactiveActions.awaitingApproval.map((epic) => (
@@ -122,15 +131,15 @@ export default function BusinessProjectOps() {
                   ))}
                 </ul>
               ) : (
-                <p className='text-sm text-amber-800 mt-2'>
+                <Text variant='small' className='text-amber-800 mt-2'>
                   All epics are green-lit.
-                </p>
+                </Text>
               )}
             </div>
             <div className='rounded-2xl border border-rose-100 bg-rose-50 p-4'>
-              <p className='text-sm font-semibold text-rose-900'>
+              <Text variant='small' weight='semibold' className='text-rose-900'>
                 Dependencies
-              </p>
+              </Text>
               {proactiveActions.dependencyStories.length > 0 ? (
                 <ul className='mt-2 list-disc list-inside text-sm text-rose-800'>
                   {proactiveActions.dependencyStories.map((story) => (
@@ -138,14 +147,14 @@ export default function BusinessProjectOps() {
                   ))}
                 </ul>
               ) : (
-                <p className='text-sm text-rose-800 mt-2'>
+                <Text variant='small' className='text-rose-800 mt-2'>
                   No blocked stories reported.
-                </p>
+                </Text>
               )}
             </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </Stack>
+      </Card>
+    </Stack>
   );
 }

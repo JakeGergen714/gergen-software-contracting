@@ -3,11 +3,11 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Home from './pages/Home';
+import About from './pages/About';
 import FAQ from './pages/FAQ';
-import Signup from './pages/Signup';
+import GetStarted from './pages/GetStarted';
 import Login from './pages/Login';
 import BusinessDashboard from './pages/business/BusinessDashboard';
-import IntakeWizard from './pages/business/IntakeWizard';
 import BusinessWorkspaceLayout from './pages/business/BusinessWorkspaceLayout';
 import BusinessProjectLayout from './pages/business/project/BusinessProjectLayout';
 import BusinessProjectOverview from './pages/business/project/BusinessProjectOverview';
@@ -22,17 +22,13 @@ import AdminProjectLayout from './pages/admin/project/AdminProjectLayout';
 import AdminProjectOverview from './pages/admin/project/AdminProjectOverview';
 import AdminProjectSchedule from './pages/admin/project/AdminProjectSchedule';
 import AdminProjectBacklog from './pages/admin/project/AdminProjectBacklog';
-import AdminProjectDelivery from './pages/admin/project/AdminProjectDelivery';
 import AdminProjectEpics from './pages/admin/project/AdminProjectEpics';
 import AdminProjectProposals from './pages/admin/project/AdminProjectProposals';
-import AdminProjectOps from './pages/admin/project/AdminProjectOps';
 import AdminProjectChangeRequests from './pages/admin/project/AdminProjectChangeRequests';
 import { AdminProjectRisks } from './pages/admin/project/AdminProjectRisks';
 import { AdminProjectDependencies } from './pages/admin/project/AdminProjectDependencies';
 import { AdminProjectFinancials } from './pages/admin/project/AdminProjectFinancials';
-import { AdminProjectKanban } from './pages/admin/project/AdminProjectKanban';
 import AdminProjectTickets from './pages/admin/project/AdminProjectTickets';
-import AdminProjectPerformance from './pages/admin/project/AdminProjectPerformance';
 import AdminPortfolioDashboard from './pages/admin/AdminPortfolioDashboard';
 import AdminProjectSprintLayout from './pages/admin/project/AdminProjectSprintLayout';
 import AdminSprintPlanning from './pages/admin/project/AdminSprintPlanning';
@@ -53,8 +49,9 @@ createRoot(document.getElementById('root')!).render(
             <Routes>
               <Route element={<SiteLayout />}>
                 <Route path='/' element={<Home />} />
+                <Route path='/about' element={<About />} />
                 <Route path='/faq' element={<FAQ />} />
-                <Route path='/signup' element={<Signup />} />
+                <Route path='/start' element={<GetStarted />} />
                 <Route path='/login' element={<Login />} />
                 <Route path='*' element={<Navigate to='/' replace />} />
               </Route>
@@ -63,7 +60,6 @@ createRoot(document.getElementById('root')!).render(
                 <Route path='/business' element={<BusinessWorkspaceLayout />}>
                   <Route index element={<Navigate to='projects' replace />} />
                   <Route path='projects' element={<BusinessDashboard />} />
-                  <Route path='intake' element={<IntakeWizard />} />
                   <Route
                     path='projects/:projectId'
                     element={<BusinessProjectLayout />}
@@ -109,9 +105,7 @@ createRoot(document.getElementById('root')!).render(
                   >
                     <Route index element={<Navigate to='overview' replace />} />
                     <Route path='overview' element={<AdminProjectOverview />} />
-                    <Route path='board' element={<AdminProjectKanban />} />
                     <Route path='schedule' element={<AdminProjectSchedule />} />
-                    <Route path='delivery' element={<AdminProjectDelivery />} />
                     <Route path='epics' element={<AdminProjectEpics />} />
                     <Route
                       path='proposals'
@@ -130,12 +124,7 @@ createRoot(document.getElementById('root')!).render(
                       path='financials'
                       element={<AdminProjectFinancials />}
                     />
-                    <Route path='ops' element={<AdminProjectOps />} />
                     <Route path='tickets' element={<AdminProjectTickets />} />
-                    <Route
-                      path='metrics'
-                      element={<AdminProjectPerformance />}
-                    />
                     <Route path='sprint' element={<AdminProjectSprintLayout />}>
                       <Route
                         index

@@ -419,27 +419,6 @@ export interface CreateTicketInput {
   severity: TicketSeverity;
 }
 
-export type MetricType = 'RESPONSE_TIME' | 'ERROR_RATE' | 'UPTIME' | 'CPU_USAGE' | 'MEMORY_USAGE' | 'THROUGHPUT' | 'CUSTOM';
-
-export interface Metric {
-  id: string;
-  projectId: string;
-  type: MetricType;
-  name: string;
-  value: number;
-  unit?: string;
-  timestamp: string;
-  environment?: string;
-}
-
-export interface CreateMetricInput {
-  type: MetricType;
-  name: string;
-  value: number;
-  unit?: string;
-  timestamp?: string;
-  environment?: string;
-}
 
 export interface SearchResult {
   id: string;

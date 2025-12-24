@@ -3,9 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import {
   FiActivity,
-  FiArrowDown,
   FiBarChart2,
-  FiCheckCircle,
   FiCompass,
   FiGitBranch,
   FiLink,
@@ -16,6 +14,14 @@ import {
 } from 'react-icons/fi';
 import { Card } from '../components/ui/card';
 import { PageHeader } from '../components/ui/PageHeader';
+import {
+  Heading,
+  Text,
+  Kicker,
+  Stack,
+  Section,
+  Tag,
+} from '../components/ui/design-system';
 
 const serviceAreas = [
   {
@@ -78,7 +84,7 @@ const serviceAreas = [
 
 const Home: React.FC = () => {
   return (
-    <div className='relative space-y-14 lg:space-y-16'>
+    <Stack>
       <Helmet>
         <title>
           Gergen Software | Simple software that moves your business
@@ -100,29 +106,36 @@ const Home: React.FC = () => {
         />
         <div className='relative'>
           <div>
-            <span className='tag tag-soft mb-4 inline-flex'>
+            <Tag variant='soft' className='mb-4'>
               Full-service product engineering, without the headcount
-            </span>
-            <h1 className='font-display text-4xl tracking-tight text-text-primary sm:text-5xl lg:text-6xl'>
-              A senior software team for a simple monthly fee.
-            </h1>
-            <p className='mt-6 text-lg text-text-muted max-w-2xl'>
+            </Tag>
+            <Heading
+              level='h1'
+              variant='display'
+              className='tracking-tight sm:text-5xl lg:text-6xl'
+            >
+              Senior engineering for the life of your software.
+            </Heading>
+            <Text variant='lead' className='mt-6 max-w-2xl'>
               We build your core software right once—with clean architecture,
               observability, and automated tests—so it&apos;s cheap to run and
               easy to change. That&apos;s how we offer full-service development,
               maintenance, and small features at a price a single senior hire
               can&apos;t match.
-            </p>
+            </Text>
             <div className='mt-8 flex flex-wrap gap-3'>
-              <Link to='/about' className='btn-primary'>
-                About Us
+              <Link to='/start' className='btn-primary'>
+                Start a Project
               </Link>
+              <a href='#getting-started' className='btn-secondary'>
+                How it works
+              </a>
             </div>
           </div>
         </div>
       </Card>
 
-      <section className='space-y-8'>
+      <Section spacing='none' className='space-y-8'>
         <PageHeader
           kicker='WHAT WE HANDLE'
           title='From net-new features to the unglamorous upkeep'
@@ -149,13 +162,13 @@ const Home: React.FC = () => {
                   <span className='h-11 w-11 rounded-full bg-brand-soft text-brand-strong flex items-center justify-center'>
                     <Icon size={20} />
                   </span>
-                  <h3 className='text-lg font-semibold text-text-primary'>
+                  <Heading level='h3' variant='subtitle' className='text-lg'>
                     {service.title}
-                  </h3>
+                  </Heading>
                 </div>
-                <p className='text-sm text-text-muted leading-relaxed'>
+                <Text variant='small' className='leading-relaxed'>
                   {service.copy}
-                </p>
+                </Text>
                 <ul className='mt-2 space-y-1 text-sm text-text-muted'>
                   {service.bullets.map((bullet) => (
                     <li key={bullet} className='flex gap-2'>
@@ -168,14 +181,14 @@ const Home: React.FC = () => {
             );
           })}
         </div>
-      </section>
+      </Section>
 
-      <section>
+      <Section spacing='none'>
         <div className='rounded-[2.5rem] bg-surface-alt p-6 md:p-12 space-y-12 border border-border-subtle'>
           <PageHeader
             kicker='OUR APPROACH'
-            title='How we offer a full team for the price of a freelancer.'
-            description="It's not magic. It's engineering rigor. By building software correctly from the start, we eliminate the bloat, bugs, and meetings that make traditional development expensive."
+            title='Resilience through experience.'
+            description="Software will never be perfect, but it shouldn't be fragile. We bring the deep expertise required to build systems that are resilient by design. We know that most problems are preventable with the right architecture, and we have the experience to build it right."
           />
 
           <div className='grid gap-6 md:grid-cols-3'>
@@ -184,16 +197,16 @@ const Home: React.FC = () => {
                 <FiCompass />
               </div>
               <div>
-                <h3 className='text-xl font-display font-semibold text-text-primary mb-3'>
-                  Front-Loaded Quality
-                </h3>
-                <p className='text-text-muted leading-relaxed text-sm'>
+                <Heading level='h3' variant='subtitle' className='text-xl mb-3'>
+                  Built to Last
+                </Heading>
+                <Text variant='small' className='leading-relaxed'>
                   We invest heavily at the start. By building (or refactoring)
                   with strict architectural standards and clean code, we
                   eliminate the &quot;technical debt&quot; that slows down
                   traditional teams. A healthy codebase is easy to understand
                   and quick to change.
-                </p>
+                </Text>
               </div>
             </Card>
 
@@ -203,13 +216,13 @@ const Home: React.FC = () => {
               </div>
               <div>
                 <h3 className='text-xl font-display font-semibold text-text-primary mb-3'>
-                  Automated Confidence
+                  Reliability by Design
                 </h3>
                 <p className='text-text-muted leading-relaxed text-sm'>
-                  We don&apos;t need a QA department. Our automated test suites
-                  and observability pipelines catch issues instantly. This means
-                  we spend our time building features, not chasing bugs or
-                  manually testing every release.
+                  We build systems that verify themselves. By automating the
+                  testing and deployment process, we ensure that every change is
+                  safe. This allows us to ship new features frequently without
+                  the fear of breaking what already works.
                 </p>
               </div>
             </Card>
@@ -223,93 +236,192 @@ const Home: React.FC = () => {
                   The Efficiency Dividend
                 </h3>
                 <p className='text-text-muted leading-relaxed text-sm'>
-                  Because the system is healthy, maintenance takes hours, not
-                  weeks. We pass those savings to you. You get a senior partner
-                  on retainer for a fraction of the cost, and we get a stable
-                  platform to manage. Everyone wins.
+                  A healthy codebase is a competitive advantage. Because we
+                  don't waste time fighting fires, we can focus our energy on
+                  high-leverage work that grows your business. You get the
+                  output of a senior team without the overhead.
                 </p>
               </div>
             </Card>
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className='space-y-6'>
+      <Section spacing='none' className='space-y-8' id='getting-started'>
         <PageHeader
-          kicker='PRICING'
-          title='Ongoing care for software built to run itself'
-          description='After we build or onboard your system and put guardrails in place, ongoing work stays light. You get a stable senior engineering team for less than a single hire, focused on keeping things healthy and shipping the small features that matter.'
+          kicker='GETTING STARTED'
+          title='Where we begin'
+          description='Whether you are launching a new product or stabilizing an existing one, our goal is the same: to get you to a point where your software is an asset, not a liability.'
         />
-        <Card className='rounded-3xl p-8 lg:p-10'>
-          <div className='flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between'>
+        <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+          <Card className='p-8 flex flex-col gap-6 border-l-4 border-l-brand-strong'>
             <div>
-              <p className='uppercase text-xs font-semibold tracking-[0.2em] text-text-muted'>
-                Core partnership
-              </p>
-              <div className='mt-3 flex items-baseline gap-3'>
-                <span className='font-display text-4xl sm:text-5xl text-text-primary'>
+              <div className='flex items-center gap-3 mb-4'>
+                <span className='h-10 w-10 rounded-lg bg-brand-soft text-brand-strong flex items-center justify-center'>
+                  <FiZap size={20} />
+                </span>
+                <Heading level='h3' variant='subtitle' className='text-xl'>
+                  New Development
+                </Heading>
+              </div>
+              <Text variant='lead' className='mb-4'>
+                Build it right the first time.
+              </Text>
+              <Text variant='small' className='mb-6'>
+                We prioritize the architectural decisions that preserve your
+                ability to move fast indefinitely. By establishing a
+                professional engineering environment immediately, we prevent the
+                accumulation of technical debt that typically paralyzes projects
+                after their first release.
+              </Text>
+            </div>
+            <div className='mt-auto pt-6 border-t border-border-subtle flex flex-col gap-4'>
+              <Text variant='small' className='font-medium text-text-primary'>
+                Outcome: A production-ready app. We then transition to our
+                monthly retainer to keep it running smoothly.
+              </Text>
+              <Link
+                to='/start?type=new'
+                className='btn-secondary w-full justify-center'
+              >
+                Discuss your idea
+              </Link>
+            </div>
+          </Card>
+
+          <Card className='p-8 flex flex-col gap-6 border-l-4 border-l-brand-strong'>
+            <div>
+              <div className='flex items-center gap-3 mb-4'>
+                <span className='h-10 w-10 rounded-lg bg-brand-soft text-brand-strong flex items-center justify-center'>
+                  <FiRefreshCw size={20} />
+                </span>
+                <Heading level='h3' variant='subtitle' className='text-xl'>
+                  Legacy Onboarding
+                </Heading>
+              </div>
+              <Text variant='lead' className='mb-4'>
+                Stabilize and modernize.
+              </Text>
+              <Text variant='small' className='mb-6'>
+                We apply forensic engineering to understand and stabilize your
+                existing system. By making the system's behavior visible and
+                predictable, we remove the risk from updates and allow you to
+                shift focus from fighting fires back to innovation.
+              </Text>
+            </div>
+            <div className='mt-auto pt-6 border-t border-border-subtle flex flex-col gap-4'>
+              <Text variant='small' className='font-medium text-text-primary'>
+                Outcome: A stable platform. We then transition to our monthly
+                retainer to maintain that health.
+              </Text>
+              <Link
+                to='/start?type=audit'
+                className='btn-secondary w-full justify-center'
+              >
+                Request an audit
+              </Link>
+            </div>
+          </Card>
+
+          <Card className='p-8 flex flex-col gap-6 border-l-4 border-l-emerald-500'>
+            <div>
+              <div className='flex items-center gap-3 mb-4'>
+                <span className='h-10 w-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center'>
+                  <FiActivity size={20} />
+                </span>
+                <Heading level='h3' variant='subtitle' className='text-xl'>
+                  Core Partnership
+                </Heading>
+              </div>
+              <Text variant='lead' className='mb-4'>
+                Strategic technical partnership.
+              </Text>
+              <Text variant='small' className='mb-6'>
+                We don't just maintain code; we partner with your business. We
+                work directly with you to design solutions, weigh trade-offs,
+                and plan for the future. We are also your dedicated support
+                team, ready to troubleshoot issues and answer questions whenever
+                they arise. You get the alignment and responsiveness of an
+                in-house team, focused entirely on execution and stability.
+              </Text>
+            </div>
+            <div className='mt-auto pt-6 border-t border-border-subtle flex flex-col gap-4'>
+              <Text variant='small' className='font-medium text-text-primary'>
+                Outcome: Peace of mind. A stable system and a long-term
+                technology partner.
+              </Text>
+              <Link to='/start' className='btn-secondary w-full justify-center'>
+                View Plans
+              </Link>
+            </div>
+          </Card>
+        </div>
+      </Section>
+
+      <Section spacing='none' className='space-y-6'>
+        <PageHeader
+          kicker='THE MODEL'
+          title='A business model built for trust'
+          description='We align our incentives with yours. We profit when your software is stable and efficient, not when it breaks or takes longer to build. You get the capabilities of a full engineering department without the overhead.'
+        />
+        <Card className='rounded-3xl overflow-hidden'>
+          <div className='grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border-subtle'>
+            <div className='p-8 lg:p-10 flex flex-col gap-6'>
+              <div>
+                <Kicker className='mb-2'>
+                  New Development & Legacy Onboarding
+                </Kicker>
+                <Heading level='h3' variant='subtitle' className='text-2xl'>
+                  Project Work
+                </Heading>
+              </div>
+              <div className='flex items-baseline gap-2'>
+                <span className='font-display text-4xl text-text-primary'>
+                  Fixed Price
+                </span>
+                <span className='text-text-muted'>/ milestone</span>
+              </div>
+              <Text variant='muted'>
+                For <strong>New Development</strong> and{' '}
+                <strong>Legacy Onboarding</strong>, we work in fixed-price
+                milestones. We agree on scope and cost upfront. You pay for
+                results, not hours. No surprise bills.
+              </Text>
+            </div>
+
+            <div className='p-8 lg:p-10 flex flex-col gap-6 bg-surface-alt/30'>
+              <div>
+                <Kicker className='mb-2'>Ongoing Care</Kicker>
+                <Heading level='h3' variant='subtitle' className='text-2xl'>
+                  Core Partnership
+                </Heading>
+              </div>
+              <div className='flex items-baseline gap-2'>
+                <span className='text-sm text-text-muted'>Starts at</span>
+                <span className='font-display text-4xl text-text-primary'>
                   $1,000
                 </span>
                 <span className='text-text-muted'>/ month</span>
               </div>
-              <p className='mt-3 max-w-2xl text-text-muted'>
-                Every month, you get up to 10 hours of senior engineering time.
-                In practice, most healthy systems need far less—1-2 hours of
-                small fixes and upkeep—which leaves room for the small features
-                and improvements that move the needle. We always prioritize the
-                highest-leverage work first.
-              </p>
-            </div>
-            <div className='flex flex-wrap gap-3'>
-              <a
-                href='mailto:contact@gergensoftware.com'
-                className='btn-primary'
-                rel='nofollow'
-              >
-                Talk about your numbers
-              </a>
-              <Link to='/faq' className='btn-secondary'>
-                Ask a specific question
-              </Link>
+              <Text variant='muted'>
+                Once your platform is stable, we transition to our{' '}
+                <strong>Core Partnership</strong> retainer. This covers 24/7
+                monitoring, security, and the strategic advice of a senior
+                partner.
+              </Text>
             </div>
           </div>
-
-          <div className='mt-8 grid gap-4 md:grid-cols-2'>
-            <div className='rounded-2xl border border-border-subtle/70 bg-surface-alt p-5 flex flex-col gap-2'>
-              <h3 className='text-sm font-semibold text-text-primary uppercase tracking-[0.16em]'>
-                Included feature time
-              </h3>
-              <p className='text-sm text-text-muted'>
-                Your plan includes{' '}
-                <span className='font-semibold text-text-primary'>
-                  10 hours
-                </span>{' '}
-                of hands-on engineering time each month. We use it for the mix
-                of maintenance, support, and incremental features that will have
-                the biggest impact right now.
-              </p>
-            </div>
-            <div className='rounded-2xl border border-border-subtle/70 bg-surface-alt p-5 flex flex-col gap-2'>
-              <h3 className='text-sm font-semibold text-text-primary uppercase tracking-[0.16em]'>
-                Need more than that?
-              </h3>
-              <p className='text-sm text-text-muted'>
-                When you have a larger push—new modules, major redesigns, big
-                integrations—we add time at a straightforward hourly rate and
-                agree on scope before we start. No surprise bills, no vague
-                "retainers."
-              </p>
-            </div>
-          </div>
-
-          <div className='mt-8 rounded-2xl border border-border-subtle bg-surface p-5 text-sm text-text-muted'>
-            No long-term lock-in. If your needs shrink, the baseline plan keeps
-            your platform healthy; when they grow, we scale up work with clear
-            estimates and pricing first.
+          <div className='bg-surface-alt border-t border-border-subtle p-6 flex flex-col md:flex-row items-center justify-between gap-4'>
+            <Text variant='small' className='text-text-muted'>
+              Simple, transparent terms. No long-term lock-in.
+            </Text>
+            <Link to='/start' className='btn-primary'>
+              Start the Conversation
+            </Link>
           </div>
         </Card>
-      </section>
-    </div>
+      </Section>
+    </Stack>
   );
 };
 

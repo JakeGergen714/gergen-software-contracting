@@ -11,6 +11,9 @@ import {
   ProjectMeetings,
 } from '../../../components/project/ProjectMeetings';
 import MeetingCalendar from '../../../components/project/MeetingCalendar';
+import { Stack } from '../../../components/ui/container';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Heading, Text } from '../../../components/ui/typography';
 
 function buildMeetingDraft(stage: ProjectStage): ScheduleMeetingInput {
   const nowIso = new Date().toISOString().slice(0, 16);
@@ -76,55 +79,82 @@ export default function AdminProjectSchedule() {
   };
 
   return (
-    <div className='space-y-6'>
-      <section className='rounded-3xl border border-white/80 bg-white p-6 shadow-[0_15px_35px_rgba(15,23,42,0.08)] grid gap-6 lg:grid-cols-2'>
-        <div>
-          <p className='text-xs uppercase tracking-wide text-slate-500'>
-            Next client session
-          </p>
-          <h2 className='text-2xl font-semibold text-slate-900 mt-1'>
-            {upcoming[0]
-              ? new Date(upcoming[0].scheduledAt).toLocaleString(undefined, {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: 'numeric',
-                })
-              : 'Nothing scheduled'}
-          </h2>
-          <p className='text-sm text-slate-500 mt-2'>
-            Stay ahead by booking the next review or workshop before the client
-            asks.
-          </p>
-          {lastMeeting && (
-            <div className='mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600'>
-              <p className='text-xs uppercase text-slate-500 tracking-wide'>
-                Last touchpoint
-              </p>
-              <p className='font-semibold text-slate-900'>{lastMeeting.type}</p>
-              <p>{lastMeeting.summary}</p>
-              <p className='text-xs text-slate-500 mt-1'>
-                {new Date(lastMeeting.scheduledAt).toLocaleString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: 'numeric',
-                })}
-              </p>
+    <Stack gap={6}>
+      <Card className='bg-surface border-border-subtle'>
+        <CardContent className='grid gap-6 lg:grid-cols-2 pt-6'>
+          <Stack gap={4}>
+            <div>
+              <Text
+                variant='label'
+                className='uppercase tracking-wide text-text-muted'
+              >
+                Next client session
+              </Text>
+              <Heading
+                level='h2'
+                className='text-2xl font-semibold mt-1 text-text-primary'
+              >
+                {upcoming[0]
+                  ? new Date(upcoming[0].scheduledAt).toLocaleString(
+                      undefined,
+                      {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                      }
+                    )
+                  : 'Nothing scheduled'}
+              </Heading>
+              <Text variant='muted' className='mt-2 text-text-muted'>
+                Stay ahead by booking the next review or workshop before the
+                client asks.
+              </Text>
             </div>
-          )}
-        </div>
-        <div>
-          <MeetingScheduler
-            values={meetingDraft}
-            onChange={(updater) => setMeetingDraft((prev) => updater(prev))}
-            onSubmit={handleSchedule}
-            saving={saving}
-          />
-          {error && <p className='text-sm text-rose-600 mt-2'>{error}</p>}
-        </div>
-      </section>
+            {lastMeeting && (
+              <div className='rounded-2xl border border-border-subtle bg-surface-alt p-4 text-sm text-text-secondary'>
+                <Text
+                  variant='label'
+                  className='uppercase text-text-muted tracking-wide'
+                >
+                  Last touchpoint
+                </Text>
+                <Text
+                  variant='body'
+                  className='font-semibold text-text-primary'
+                >
+                  {lastMeeting.type}
+                </Text>
+                <Text variant='body' className='text-text-secondary'>
+                  {lastMeeting.summary}
+                </Text>
+                <Text variant='caption' className='mt-1 text-text-muted'>
+                  {new Date(lastMeeting.scheduledAt).toLocaleString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                  })}
+                </Text>
+              </div>
+            )}
+          </Stack>
+          <div>
+            <MeetingScheduler
+              values={meetingDraft}
+              onChange={(updater) => setMeetingDraft((prev) => updater(prev))}
+              onSubmit={handleSchedule}
+              saving={saving}
+            />
+            {error && (
+              <Text variant='body' className='text-brand-strong mt-2'>
+                {error}
+              </Text>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className='grid gap-6 lg:grid-cols-2'>
         <MeetingCalendar
@@ -135,6 +165,6 @@ export default function AdminProjectSchedule() {
         />
         <ProjectMeetings meetings={project.meetings} />
       </div>
-    </div>
+    </Stack>
   );
 }

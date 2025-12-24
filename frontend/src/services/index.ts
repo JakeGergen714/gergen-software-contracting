@@ -1,4 +1,5 @@
 import { AuthService, KeycloakAuthService } from './AuthService';
+import { MockAuthService } from './MockAuthService';
 import { ApiBusinessService, BusinessService } from './BusinessService';
 import { ApiProjectService, ProjectService } from './ProjectService';
 import { ApiTagService, TagService } from './TagService';
@@ -26,7 +27,8 @@ export interface ServiceRegistry {
   users: UserService;
 }
 
-const auth = new KeycloakAuthService();
+const auth = appConfig.mockAuth ? new MockAuthService() : new KeycloakAuthService();
+console.log('Auth Service initialized:', appConfig.mockAuth ? 'Mock' : 'Keycloak');
 const client = new HttpClient(appConfig.apiBaseUrl, () => auth.getAccessToken());
 
 export const services: ServiceRegistry = {

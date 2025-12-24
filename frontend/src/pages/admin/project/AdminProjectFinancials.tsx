@@ -7,8 +7,21 @@ import {
   InvoiceStatus,
   CreateInvoiceInput,
 } from '../../../types/domain';
-import { Card } from '../../../components/ui/card';
+import { Stack } from '../../../components/ui/container';
+import { Card, CardContent, CardHeader } from '../../../components/ui/card';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../../components/ui/select';
+import { Tag } from '../../../components/ui/tag';
 import { Modal } from '../../../components/ui/Modal';
+import { Loader2, Plus } from 'lucide-react';
 
 export const AdminProjectFinancials: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -110,7 +123,28 @@ export const AdminProjectFinancials: React.FC = () => {
     }
   };
 
-  if (loading) return <div>Loading financials...</div>;
+  const getInvoiceStatusVariant = (status: InvoiceStatus) => {
+    switch (status) {
+      case 'PAID':
+        return 'success';
+      case 'OVERDUE':
+        return 'error';
+      case 'SENT':
+        return 'warning';
+      case 'CANCELLED':
+        return 'neutral';
+      default:
+        return 'neutral';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className='flex justify-center items-center h-64'>
+        <Loader2 className='h-8 w-8 animate-spin text-brand-solid' />
+      </div>
+    );
+  }
 
   const remaining = budget ? budget.totalAmount - budget.spentAmount : 0;
   const percentSpent =
@@ -119,51 +153,68 @@ export const AdminProjectFinancials: React.FC = () => {
       : 0;
 
   return (
-    <div className='space-y-6'>
+    <Stack gap={6}>
       <div className='flex justify-between items-center'>
-        <h2 className='text-2xl font-bold tracking-tight'>Financials</h2>
+        <Heading
+          level='h2'
+          className='text-2xl font-bold tracking-tight text-text-primary'
+        >
+          Financials
+        </Heading>
         <div className='space-x-2'>
-          <button
+          <Button
+            variant='outline'
             onClick={() => setIsBudgetModalOpen(true)}
-            className='rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50'
+            className='border-border-subtle text-text-primary hover:bg-surface-alt'
           >
             Update Budget
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setIsInvoiceModalOpen(true)}
-            className='rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500'
+            className='bg-brand-solid hover:bg-brand-solid/90 text-white'
           >
+            <Plus className='mr-2 h-4 w-4' />
             Create Invoice
-          </button>
+          </Button>
 
           <Modal
             title='Update Project Budget'
             open={isBudgetModalOpen}
             onClose={() => setIsBudgetModalOpen(false)}
             actions={
-              <button
-                onClick={handleUpdateBudget}
-                className='rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500'
-              >
-                Save Changes
-              </button>
+              <>
+                <Button
+                  variant='outline'
+                  onClick={() => setIsBudgetModalOpen(false)}
+                  className='border-border-subtle text-text-primary hover:bg-surface-alt'
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpdateBudget}
+                  className='bg-brand-solid hover:bg-brand-solid/90 text-white'
+                >
+                  Save Changes
+                </Button>
+              </>
             }
           >
             <div className='grid gap-4 py-4'>
               <div className='grid grid-cols-4 items-center gap-4'>
-                <label
-                  htmlFor='budget'
-                  className='text-right text-sm font-medium'
+                <Text
+                  variant='label'
+                  className='text-right text-text-secondary'
                 >
                   Total Amount
-                </label>
-                <input
-                  id='budget'
-                  type='number'
-                  value={newBudgetAmount}
-                  onChange={(e) => setNewBudgetAmount(e.target.value)}
-                  className='col-span-3 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                />
+                </Text>
+                <div className='col-span-3'>
+                  <Input
+                    type='number'
+                    value={newBudgetAmount}
+                    onChange={(e) => setNewBudgetAmount(e.target.value)}
+                    className='bg-surface-alt border-border-subtle text-text-primary'
+                  />
+                </div>
               </div>
             </div>
           </Modal>
@@ -173,215 +224,240 @@ export const AdminProjectFinancials: React.FC = () => {
             open={isInvoiceModalOpen}
             onClose={() => setIsInvoiceModalOpen(false)}
             actions={
-              <button
-                onClick={handleCreateInvoice}
-                className='rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500'
-              >
-                Create Invoice
-              </button>
+              <>
+                <Button
+                  variant='outline'
+                  onClick={() => setIsInvoiceModalOpen(false)}
+                  className='border-border-subtle text-text-primary hover:bg-surface-alt'
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateInvoice}
+                  className='bg-brand-solid hover:bg-brand-solid/90 text-white'
+                >
+                  Create Invoice
+                </Button>
+              </>
             }
           >
-            <div className='grid gap-4 py-4'>
+            <Stack gap={4} className='py-4'>
               <div className='grid grid-cols-4 items-center gap-4'>
-                <label
-                  htmlFor='number'
-                  className='text-right text-sm font-medium'
+                <Text
+                  variant='label'
+                  className='text-right text-text-secondary'
                 >
                   Invoice #
-                </label>
-                <input
-                  id='number'
-                  value={newInvoiceNumber}
-                  onChange={(e) => setNewInvoiceNumber(e.target.value)}
-                  className='col-span-3 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                />
+                </Text>
+                <div className='col-span-3'>
+                  <Input
+                    value={newInvoiceNumber}
+                    onChange={(e) => setNewInvoiceNumber(e.target.value)}
+                    className='bg-surface-alt border-border-subtle text-text-primary'
+                  />
+                </div>
               </div>
               <div className='grid grid-cols-4 items-center gap-4'>
-                <label
-                  htmlFor='amount'
-                  className='text-right text-sm font-medium'
+                <Text
+                  variant='label'
+                  className='text-right text-text-secondary'
                 >
                   Amount
-                </label>
-                <input
-                  id='amount'
-                  type='number'
-                  value={newInvoiceAmount}
-                  onChange={(e) => setNewInvoiceAmount(e.target.value)}
-                  className='col-span-3 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                />
+                </Text>
+                <div className='col-span-3'>
+                  <Input
+                    type='number'
+                    value={newInvoiceAmount}
+                    onChange={(e) => setNewInvoiceAmount(e.target.value)}
+                    className='bg-surface-alt border-border-subtle text-text-primary'
+                  />
+                </div>
               </div>
               <div className='grid grid-cols-4 items-center gap-4'>
-                <label
-                  htmlFor='currency'
-                  className='text-right text-sm font-medium'
+                <Text
+                  variant='label'
+                  className='text-right text-text-secondary'
                 >
                   Currency
-                </label>
-                <input
-                  id='currency'
-                  value={newInvoiceCurrency}
-                  onChange={(e) => setNewInvoiceCurrency(e.target.value)}
-                  className='col-span-3 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                />
+                </Text>
+                <div className='col-span-3'>
+                  <Input
+                    value={newInvoiceCurrency}
+                    onChange={(e) => setNewInvoiceCurrency(e.target.value)}
+                    className='bg-surface-alt border-border-subtle text-text-primary'
+                  />
+                </div>
               </div>
               <div className='grid grid-cols-4 items-center gap-4'>
-                <label
-                  htmlFor='dueDate'
-                  className='text-right text-sm font-medium'
+                <Text
+                  variant='label'
+                  className='text-right text-text-secondary'
                 >
                   Due Date
-                </label>
-                <input
-                  id='dueDate'
-                  type='date'
-                  value={newInvoiceDueDate}
-                  onChange={(e) => setNewInvoiceDueDate(e.target.value)}
-                  className='col-span-3 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                />
+                </Text>
+                <div className='col-span-3'>
+                  <Input
+                    type='date'
+                    value={newInvoiceDueDate}
+                    onChange={(e) => setNewInvoiceDueDate(e.target.value)}
+                    className='bg-surface-alt border-border-subtle text-text-primary'
+                  />
+                </div>
               </div>
-            </div>
+            </Stack>
           </Modal>
         </div>
       </div>
 
       <div className='grid gap-4 md:grid-cols-3'>
-        <Card className='p-6'>
-          <div className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <h3 className='text-sm font-medium'>Total Budget</h3>
-          </div>
-          <div className='text-2xl font-bold'>
-            {new Intl.NumberFormat('en-US', {
-              style: 'currency',
-              currency: budget?.currency || 'USD',
-            }).format(budget?.totalAmount || 0)}
-          </div>
+        <Card className='bg-surface border-border-subtle'>
+          <CardContent className='p-6'>
+            <div className='flex flex-row items-center justify-between space-y-0 pb-2'>
+              <Text variant='label' className='font-medium text-text-secondary'>
+                Total Budget
+              </Text>
+            </div>
+            <div className='text-2xl font-bold text-text-primary'>
+              {new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: budget?.currency || 'USD',
+              }).format(budget?.totalAmount || 0)}
+            </div>
+          </CardContent>
         </Card>
-        <Card className='p-6'>
-          <div className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <h3 className='text-sm font-medium'>Spent Amount</h3>
-          </div>
-          <div className='text-2xl font-bold'>
-            {new Intl.NumberFormat('en-US', {
-              style: 'currency',
-              currency: budget?.currency || 'USD',
-            }).format(budget?.spentAmount || 0)}
-          </div>
-          <p className='text-xs text-muted-foreground'>
-            {percentSpent.toFixed(1)}% of budget
-          </p>
+        <Card className='bg-surface border-border-subtle'>
+          <CardContent className='p-6'>
+            <div className='flex flex-row items-center justify-between space-y-0 pb-2'>
+              <Text variant='label' className='font-medium text-text-secondary'>
+                Spent Amount
+              </Text>
+            </div>
+            <div className='text-2xl font-bold text-text-primary'>
+              {new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: budget?.currency || 'USD',
+              }).format(budget?.spentAmount || 0)}
+            </div>
+            <Text variant='caption' className='text-text-muted'>
+              {percentSpent.toFixed(1)}% of budget
+            </Text>
+          </CardContent>
         </Card>
-        <Card className='p-6'>
-          <div className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <h3 className='text-sm font-medium'>Remaining</h3>
-          </div>
-          <div className='text-2xl font-bold'>
-            {new Intl.NumberFormat('en-US', {
-              style: 'currency',
-              currency: budget?.currency || 'USD',
-            }).format(remaining)}
-          </div>
+        <Card className='bg-surface border-border-subtle'>
+          <CardContent className='p-6'>
+            <div className='flex flex-row items-center justify-between space-y-0 pb-2'>
+              <Text variant='label' className='font-medium text-text-secondary'>
+                Remaining
+              </Text>
+            </div>
+            <div className='text-2xl font-bold text-text-primary'>
+              {new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: budget?.currency || 'USD',
+              }).format(remaining)}
+            </div>
+          </CardContent>
         </Card>
       </div>
 
-      <Card className='p-6'>
-        <div className='mb-4'>
-          <h3 className='text-lg font-semibold'>Invoices</h3>
-        </div>
-        <div className='relative w-full overflow-auto'>
-          <table className='w-full caption-bottom text-sm'>
-            <thead className='[&_tr]:border-b'>
-              <tr className='border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted'>
-                <th className='h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0'>
-                  Invoice #
-                </th>
-                <th className='h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0'>
-                  Amount
-                </th>
-                <th className='h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0'>
-                  Status
-                </th>
-                <th className='h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0'>
-                  Due Date
-                </th>
-                <th className='h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0'>
-                  Paid Date
-                </th>
-                <th className='h-12 px-4 text-right align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0'>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className='[&_tr:last-child]:border-0'>
-              {invoices.map((invoice) => (
-                <tr
-                  key={invoice.id}
-                  className='border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted'
-                >
-                  <td className='p-4 align-middle font-medium'>
-                    {invoice.invoiceNumber}
-                  </td>
-                  <td className='p-4 align-middle'>
-                    {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: invoice.currency,
-                    }).format(invoice.amount)}
-                  </td>
-                  <td className='p-4 align-middle'>
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
-                        invoice.status === 'PAID'
-                          ? 'border-transparent bg-green-500 text-white shadow hover:bg-green-600'
-                          : invoice.status === 'OVERDUE'
-                          ? 'border-transparent bg-red-500 text-white shadow hover:bg-red-600'
-                          : 'border-transparent bg-slate-100 text-slate-900 hover:bg-slate-200'
-                      }`}
-                    >
-                      {invoice.status}
-                    </span>
-                  </td>
-                  <td className='p-4 align-middle'>
-                    {new Date(invoice.dueDate).toLocaleDateString()}
-                  </td>
-                  <td className='p-4 align-middle'>
-                    {invoice.paidDate
-                      ? new Date(invoice.paidDate).toLocaleDateString()
-                      : '-'}
-                  </td>
-                  <td className='p-4 align-middle text-right'>
-                    <select
-                      value={invoice.status}
-                      onChange={(e) =>
-                        handleUpdateInvoiceStatus(
-                          invoice.id,
-                          e.target.value as InvoiceStatus
-                        )
-                      }
-                      className='h-9 w-[130px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-                    >
-                      <option value='DRAFT'>Draft</option>
-                      <option value='SENT'>Sent</option>
-                      <option value='PAID'>Paid</option>
-                      <option value='OVERDUE'>Overdue</option>
-                      <option value='CANCELLED'>Cancelled</option>
-                    </select>
-                  </td>
+      <Card className='bg-surface border-border-subtle'>
+        <CardHeader>
+          <Heading
+            level='h3'
+            className='text-lg font-semibold text-text-primary'
+          >
+            Invoices
+          </Heading>
+        </CardHeader>
+        <CardContent>
+          <div className='relative w-full overflow-auto'>
+            <table className='w-full caption-bottom text-sm'>
+              <thead className='[&_tr]:border-b border-border-subtle'>
+                <tr className='border-b border-border-subtle transition-colors hover:bg-surface-alt data-[state=selected]:bg-surface-alt'>
+                  <th className='h-12 px-4 text-left align-middle font-medium text-text-muted [&:has([role=checkbox])]:pr-0'>
+                    Invoice #
+                  </th>
+                  <th className='h-12 px-4 text-left align-middle font-medium text-text-muted [&:has([role=checkbox])]:pr-0'>
+                    Amount
+                  </th>
+                  <th className='h-12 px-4 text-left align-middle font-medium text-text-muted [&:has([role=checkbox])]:pr-0'>
+                    Status
+                  </th>
+                  <th className='h-12 px-4 text-left align-middle font-medium text-text-muted [&:has([role=checkbox])]:pr-0'>
+                    Due Date
+                  </th>
+                  <th className='h-12 px-4 text-left align-middle font-medium text-text-muted [&:has([role=checkbox])]:pr-0'>
+                    Paid Date
+                  </th>
+                  <th className='h-12 px-4 text-right align-middle font-medium text-text-muted [&:has([role=checkbox])]:pr-0'>
+                    Actions
+                  </th>
                 </tr>
-              ))}
-              {invoices.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className='p-4 text-center text-muted-foreground'
+              </thead>
+              <tbody className='[&_tr:last-child]:border-0'>
+                {invoices.map((invoice) => (
+                  <tr
+                    key={invoice.id}
+                    className='border-b border-border-subtle transition-colors hover:bg-surface-alt data-[state=selected]:bg-surface-alt'
                   >
-                    No invoices found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    <td className='p-4 align-middle font-medium text-text-primary'>
+                      {invoice.invoiceNumber}
+                    </td>
+                    <td className='p-4 align-middle text-text-primary'>
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: invoice.currency,
+                      }).format(invoice.amount)}
+                    </td>
+                    <td className='p-4 align-middle'>
+                      <Tag variant={getInvoiceStatusVariant(invoice.status)}>
+                        {invoice.status}
+                      </Tag>
+                    </td>
+                    <td className='p-4 align-middle text-text-primary'>
+                      {new Date(invoice.dueDate).toLocaleDateString()}
+                    </td>
+                    <td className='p-4 align-middle text-text-primary'>
+                      {invoice.paidDate
+                        ? new Date(invoice.paidDate).toLocaleDateString()
+                        : '-'}
+                    </td>
+                    <td className='p-4 align-middle text-right'>
+                      <Select
+                        value={invoice.status}
+                        onValueChange={(value) =>
+                          handleUpdateInvoiceStatus(
+                            invoice.id,
+                            value as InvoiceStatus
+                          )
+                        }
+                      >
+                        <SelectTrigger className='w-[130px] bg-surface-alt border-border-subtle text-text-primary'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className='bg-surface border-border-subtle'>
+                          <SelectItem value='DRAFT'>Draft</SelectItem>
+                          <SelectItem value='SENT'>Sent</SelectItem>
+                          <SelectItem value='PAID'>Paid</SelectItem>
+                          <SelectItem value='OVERDUE'>Overdue</SelectItem>
+                          <SelectItem value='CANCELLED'>Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                  </tr>
+                ))}
+                {invoices.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className='p-4 text-center text-text-muted'>
+                      No invoices found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
       </Card>
-    </div>
+    </Stack>
   );
 };

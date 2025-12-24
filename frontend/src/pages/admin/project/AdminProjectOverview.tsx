@@ -1,34 +1,39 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useProjectWorkspace } from '../../project/ProjectLayoutBase';
+import { useOutletContext } from 'react-router-dom';
+import { ProjectWorkspaceOutletContext } from '../../project/ProjectLayoutBase';
 import { ProjectStageHeader } from '../../../components/project/ProjectStageHeader';
 import { StageControls } from '../../../components/project/StageControls';
 import { useServices } from '../../../context/ServiceContext';
+import { StatusNoteHistory } from '../../../components/project/StatusNoteHistory';
+import { EpicStatus, StatusNoteVersion } from '../../../types/domain';
+import { AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { Stack } from '../../../components/ui/container';
+import { Card } from '../../../components/ui/card';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
+import { Textarea } from '../../../components/ui/textarea';
+
+const attentionStatuses: EpicStatus[] = ['AWAITING_APPROVAL', 'IN_PROGRESS'];
 
 export default function AdminProjectOverview() {
   const { project, setProject, advanceStage, stageUpdating, stageError } =
-    useProjectWorkspace();
+    useOutletContext<ProjectWorkspaceOutletContext>();
   const { project: projectService } = useServices();
 
   const [statusNote, setStatusNote] = useState(project.statusNote || '');
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [history, setHistory] = useState<StatusNoteVersion[]>([]);
 
   useEffect(() => {
     setStatusNote(project.statusNote || '');
   }, [project.statusNote]);
 
-  const handleGenerateDraft = async () => {
-    setIsGenerating(true);
-    try {
-      const { draft } = await projectService.getStatusDraft(project.id);
-      setStatusNote(draft);
-    } catch (error) {
-      console.error('Failed to generate draft', error);
-      alert('Failed to generate draft status note');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  useEffect(() => {
+    projectService
+      .getStatusNoteHistory(project.id)
+      .then(setHistory)
+      .catch(console.error);
+  }, [project.id, projectService]);
 
   const handleSaveStatus = async () => {
     setIsSaving(true);
@@ -38,10 +43,10 @@ export default function AdminProjectOverview() {
         statusNote
       );
       setProject(updated);
-      alert('Status note updated');
+      const newHistory = await projectService.getStatusNoteHistory(project.id);
+      setHistory(newHistory);
     } catch (error) {
       console.error('Failed to save status note', error);
-      alert('Failed to save status note');
     } finally {
       setIsSaving(false);
     }
@@ -62,8 +67,25 @@ export default function AdminProjectOverview() {
     };
   }, [project.meetings, project.sprints, project.stories]);
 
+  const riskItems = useMemo(() => {
+    return project.epics
+      .filter((epic) => attentionStatuses.includes(epic.status))
+      .map((epic) => ({
+        id: epic.id,
+        name: epic.name,
+        status: epic.status,
+      }));
+  }, [project.epics]);
+
+  const orphanedStories = useMemo(() => {
+    return project.stories.filter(
+      (story) =>
+        (story.stage === 'READY' || story.stage === 'DONE') && !story.sprintId
+    );
+  }, [project.stories]);
+
   return (
-    <div className='space-y-6'>
+    <Stack gap={8}>
       <ProjectStageHeader project={project}>
         <StageControls
           currentStage={project.stage}
@@ -73,79 +95,122 @@ export default function AdminProjectOverview() {
           disabled={stageUpdating}
         />
         {stageError && (
-          <div className='rounded-2xl border border-rose-200 bg-rose-50 text-rose-700 px-4 py-3 text-sm'>
+          <div className='rounded-2xl border border-brand-strong/20 bg-brand-strong/5 text-brand-strong px-4 py-3 text-sm'>
             {stageError}
           </div>
         )}
       </ProjectStageHeader>
       <section className='grid gap-4 md:grid-cols-3'>
-        <div className='rounded-3xl border border-white/80 bg-white p-5 shadow-[0_15px_35px_rgba(15,23,42,0.08)]'>
-          <p className='text-xs uppercase tracking-wide text-slate-500'>
-            Upcoming calls
-          </p>
-          <p className='text-3xl font-semibold text-slate-900'>
-            {metrics.upcomingMeetings}
-          </p>
-          <p className='text-sm text-slate-500'>on the calendar</p>
-        </div>
-        <div className='rounded-3xl border border-white/80 bg-white p-5 shadow-[0_15px_35px_rgba(15,23,42,0.08)]'>
-          <p className='text-xs uppercase tracking-wide text-slate-500'>
-            Active sprint
-          </p>
-          <p className='text-lg font-semibold text-slate-900'>
-            {metrics.activeSprintName}
-          </p>
-          <p className='text-sm text-slate-500'>
-            Track the work from Planning/Active tabs
-          </p>
-        </div>
-        <div className='rounded-3xl border border-white/80 bg-white p-5 shadow-[0_15px_35px_rgba(15,23,42,0.08)]'>
-          <p className='text-xs uppercase tracking-wide text-slate-500'>
-            Stories shipped
-          </p>
-          <p className='text-3xl font-semibold text-slate-900'>
-            {metrics.shippedStories}
-          </p>
-          <p className='text-sm text-slate-500'>marked done to date</p>
-        </div>
+        <Card>
+          <Stack gap={1}>
+            <Text variant='eyebrow'>Upcoming calls</Text>
+            <Text className='text-3xl font-semibold text-text-primary'>
+              {metrics.upcomingMeetings}
+            </Text>
+            <Text variant='small' className='text-text-muted'>
+              on the calendar
+            </Text>
+          </Stack>
+        </Card>
+        <Card>
+          <Stack gap={1}>
+            <Text variant='eyebrow'>Active sprint</Text>
+            <Text className='text-lg font-semibold text-text-primary'>
+              {metrics.activeSprintName}
+            </Text>
+            <Text variant='small' className='text-text-muted'>
+              Track the work from Planning/Active tabs
+            </Text>
+          </Stack>
+        </Card>
+        <Card>
+          <Stack gap={1}>
+            <Text variant='eyebrow'>Stories shipped</Text>
+            <Text className='text-3xl font-semibold text-text-primary'>
+              {metrics.shippedStories}
+            </Text>
+            <Text variant='small' className='text-text-muted'>
+              marked done to date
+            </Text>
+          </Stack>
+        </Card>
       </section>
 
-      <section className='rounded-3xl border border-white/80 bg-white p-6 shadow-[0_15px_35px_rgba(15,23,42,0.08)]'>
-        <div className='flex items-center justify-between mb-4'>
+      <div className='grid gap-8 lg:grid-cols-2'>
+        <Stack gap={4}>
+          <div className='flex items-center justify-between'>
+            <Heading level='h3' className='text-lg'>
+              Status Note
+            </Heading>
+            <div className='flex gap-2'>
+              <Button size='sm' onClick={handleSaveStatus} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Update'}
+              </Button>
+            </div>
+          </div>
+          <Textarea
+            value={statusNote}
+            onChange={(e) => setStatusNote(e.target.value)}
+            className='h-48'
+            placeholder='Write a status update for the client...'
+          />
+          <StatusNoteHistory versions={history} />
+        </Stack>
+
+        <Stack gap={6}>
           <div>
-            <h2 className='text-lg font-semibold text-slate-900'>
-              Project Status
-            </h2>
-            <p className='text-sm text-slate-500'>
-              Current status note visible to client
-            </p>
+            <Heading level='h3' className='text-lg mb-4'>
+              Attention Items
+            </Heading>
+            <Stack gap={3}>
+              {riskItems.length === 0 && orphanedStories.length === 0 && (
+                <div className='rounded-2xl border border-border-subtle bg-surface-alt p-4 text-center text-sm text-text-muted'>
+                  <CheckCircle className='mx-auto mb-2 text-brand-solid h-5 w-5' />
+                  No immediate attention items.
+                </div>
+              )}
+
+              {riskItems.map((item) => (
+                <div
+                  key={item.id}
+                  className='flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 p-4'
+                >
+                  <div className='flex items-center gap-3'>
+                    <AlertTriangle className='text-amber-600 h-5 w-5' />
+                    <div>
+                      <Text weight='medium' className='text-amber-900'>
+                        {item.name}
+                      </Text>
+                      <Text variant='caption' className='text-amber-700'>
+                        Epic Status: {item.status}
+                      </Text>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {orphanedStories.map((story) => (
+                <Card
+                  key={story.id}
+                  className='flex items-center justify-between p-4'
+                >
+                  <div className='flex items-center gap-3'>
+                    <Clock className='text-text-muted h-5 w-5' />
+                    <div>
+                      <Text weight='medium' className='text-text-primary'>
+                        {story.title}
+                      </Text>
+                      <Text variant='caption' className='text-text-muted'>
+                        {story.stage} but not in a sprint
+                      </Text>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </Stack>
           </div>
-          <div className='flex gap-2'>
-            <button
-              type='button'
-              onClick={handleGenerateDraft}
-              disabled={isGenerating || isSaving}
-              className='rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50'
-            >
-              {isGenerating ? 'Generating...' : 'Auto-generate Draft'}
-            </button>
-            <button
-              type='button'
-              onClick={handleSaveStatus}
-              disabled={isGenerating || isSaving}
-              className='rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50'
-            >
-              {isSaving ? 'Saving...' : 'Save Status'}
-            </button>
-          </div>
-        </div>
-        <textarea
-          value={statusNote}
-          onChange={(e) => setStatusNote(e.target.value)}
-          className='w-full h-40 rounded-xl border border-slate-200 p-4 text-sm text-slate-700 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
-          placeholder='Enter project status update...'
-        />
-      </section>
-    </div>
+        </Stack>
+      </div>
+    </Stack>
   );
 }

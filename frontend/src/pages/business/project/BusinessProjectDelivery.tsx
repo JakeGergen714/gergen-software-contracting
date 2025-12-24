@@ -2,6 +2,13 @@ import { useMemo, useState } from 'react';
 import { useProjectWorkspace } from '../../project/ProjectLayoutBase';
 import { useServices } from '../../../context/ServiceContext';
 import type { CreateEpicInput } from '../../../types/domain';
+import { Card } from '../../../components/ui/card';
+import { Stack } from '../../../components/ui/container';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Textarea } from '../../../components/ui/textarea';
+import { Tag } from '../../../components/ui/tag';
 
 interface SprintSummary {
   id: string;
@@ -134,14 +141,12 @@ export default function BusinessProjectDelivery() {
     : null;
 
   return (
-    <div className='space-y-6'>
-      <section className='rounded-3xl border border-white/80 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]'>
-        <div className='flex flex-col gap-3'>
-          <h2 className='text-2xl font-semibold text-slate-900'>Delivery</h2>
-          <div className='space-y-1'>
-            <p className='text-xs uppercase font-semibold tracking-wide text-slate-500'>
-              Overall progress
-            </p>
+    <Stack gap={6}>
+      <Card>
+        <Stack gap={3}>
+          <Heading level='h2'>Delivery</Heading>
+          <Stack gap={1}>
+            <Text variant='eyebrow'>Overall progress</Text>
             <div className='flex items-center gap-3'>
               <div className='h-2 flex-1 rounded-full bg-slate-100 overflow-hidden'>
                 <div
@@ -149,68 +154,61 @@ export default function BusinessProjectDelivery() {
                   style={{ width: `${epicProgress.projectPercent}%` }}
                 />
               </div>
-              <span className='text-sm font-semibold text-slate-900 w-12 text-right'>
+              <Text weight='semibold' className='w-12 text-right'>
                 {epicProgress.projectPercent}%
-              </span>
+              </Text>
             </div>
-          </div>
-        </div>
+          </Stack>
+        </Stack>
         {activeSprint ? (
           <div className='mt-4 grid gap-4 md:grid-cols-3'>
             <div className='rounded-2xl border border-slate-100 bg-slate-50 p-4'>
-              <p className='text-xs uppercase font-semibold tracking-wide text-slate-500'>
-                Sprint
-              </p>
-              <p className='text-xl font-semibold text-slate-900'>
+              <Text variant='eyebrow'>Sprint</Text>
+              <Text weight='semibold' className='text-lg text-slate-900'>
                 {activeSprint.name}
-              </p>
-              <p className='text-sm text-slate-500'>
+              </Text>
+              <Text variant='small' className='text-slate-500'>
                 {formatDateRange(activeSprint.startAt, activeSprint.endAt)}
-              </p>
+              </Text>
             </div>
             <div className='rounded-2xl border border-slate-100 bg-slate-50 p-4'>
-              <p className='text-xs uppercase font-semibold tracking-wide text-slate-500'>
-                Progress
-              </p>
-              <p className='text-xl font-semibold text-emerald-600'>
+              <Text variant='eyebrow'>Progress</Text>
+              <Text weight='semibold' className='text-lg text-emerald-600'>
                 {activeSprint.progress}%
-              </p>
-              <p className='text-sm text-slate-500'>
+              </Text>
+              <Text variant='small' className='text-slate-500'>
                 {activeSprint.doneCount} of {activeSprint.storyCount} stories
                 accepted
-              </p>
+              </Text>
             </div>
             <div className='rounded-2xl border border-slate-100 bg-slate-50 p-4'>
-              <p className='text-xs uppercase font-semibold tracking-wide text-slate-500'>
-                Time remaining
-              </p>
-              <p className='text-xl font-semibold text-slate-900'>
+              <Text variant='eyebrow'>Time remaining</Text>
+              <Text weight='semibold' className='text-lg text-slate-900'>
                 {daysLeft !== null
                   ? `${daysLeft} day${daysLeft === 1 ? '' : 's'}`
                   : '—'}
-              </p>
+              </Text>
             </div>
           </div>
         ) : (
-          <p className='text-sm text-slate-500 mt-4'>
+          <Text variant='small' className='text-slate-500 mt-4'>
             No sprints yet. Once we kick off execution, progress will display
             here.
-          </p>
+          </Text>
         )}
-      </section>
+      </Card>
 
-      <section className='rounded-3xl border border-white/80 bg-white p-6 shadow-[0_15px_40px_rgba(15,23,42,0.06)]'>
-        <div className='flex flex-col gap-2 mb-4'>
-          <h3 className='text-xl font-semibold text-slate-900'>Epics</h3>
-          <p className='text-sm text-slate-500'>
+      <Card>
+        <Stack gap={2} className='mb-4'>
+          <Heading level='h3'>Epics</Heading>
+          <Text variant='small' className='text-slate-500'>
             Define the big slices of work we&apos;re committing to deliver.
-          </p>
-        </div>
+          </Text>
+        </Stack>
 
         <form className='mb-6 space-y-2' onSubmit={handleCreateEpic}>
           <div className='grid gap-2 md:grid-cols-3'>
-            <input
-              className='rounded border px-2 py-1 text-sm w-full'
+            <Input
               placeholder='Epic name'
               value={epicDraft.name}
               onChange={(e) =>
@@ -218,16 +216,14 @@ export default function BusinessProjectDelivery() {
               }
               required
             />
-            <input
-              className='rounded border px-2 py-1 text-sm w-full'
+            <Input
               placeholder='Color (hex)'
               value={epicDraft.color}
               onChange={(e) =>
                 setEpicDraft((d) => ({ ...d, color: e.target.value }))
               }
             />
-            <input
-              className='rounded border px-2 py-1 text-sm w-full'
+            <Input
               placeholder='Client-facing summary (optional)'
               value={epicDraft.clientSummary}
               onChange={(e) =>
@@ -235,8 +231,7 @@ export default function BusinessProjectDelivery() {
               }
             />
           </div>
-          <textarea
-            className='rounded border px-2 py-1 text-sm w-full'
+          <Textarea
             placeholder='Internal notes / description (optional)'
             rows={2}
             value={epicDraft.description}
@@ -244,26 +239,24 @@ export default function BusinessProjectDelivery() {
               setEpicDraft((d) => ({ ...d, description: e.target.value }))
             }
           />
-          <button
-            type='submit'
-            className='rounded bg-sky-600 text-white px-4 py-2 text-sm font-semibold disabled:opacity-50'
-            disabled={savingEpic || !epicDraft.name.trim()}
-          >
+          <Button type='submit' disabled={savingEpic || !epicDraft.name.trim()}>
             {savingEpic ? 'Saving epic…' : 'Add epic'}
-          </button>
+          </Button>
           {epicError && (
-            <div className='text-rose-600 text-xs mt-1'>{epicError}</div>
+            <Text variant='caption' className='text-rose-600 mt-1'>
+              {epicError}
+            </Text>
           )}
         </form>
 
-        <ul className='space-y-3'>
+        <Stack gap={3}>
           {project.epics.length === 0 && (
-            <li className='text-sm text-slate-500'>
+            <Text variant='small' className='text-slate-500'>
               No epics yet. Start by adding the main outcomes we want.
-            </li>
+            </Text>
           )}
           {project.epics.map((epic) => (
-            <li
+            <div
               key={epic.id}
               className='border rounded-2xl p-4 bg-slate-50 flex flex-col gap-2'
             >
@@ -272,12 +265,10 @@ export default function BusinessProjectDelivery() {
                   className='w-3 h-3 rounded-full'
                   style={{ backgroundColor: epic.color }}
                 />
-                <span className='font-semibold text-slate-900'>
-                  {epic.name}
-                </span>
-                <span className='text-xs px-2 py-1 rounded bg-white border ml-2'>
+                <Text weight='semibold'>{epic.name}</Text>
+                <Tag variant='outline' className='bg-white ml-2'>
                   {epic.status.replace('_', ' ').toLowerCase()}
-                </span>
+                </Tag>
               </div>
               <div className='flex items-center gap-2 text-xs text-slate-600'>
                 <div className='h-1.5 flex-1 rounded-full bg-slate-200 overflow-hidden'>
@@ -293,15 +284,19 @@ export default function BusinessProjectDelivery() {
                 </span>
               </div>
               {epic.clientSummary && (
-                <p className='text-sm text-slate-700'>{epic.clientSummary}</p>
+                <Text variant='body' className='text-slate-700'>
+                  {epic.clientSummary}
+                </Text>
               )}
               {epic.description && (
-                <p className='text-xs text-slate-500'>{epic.description}</p>
+                <Text variant='caption' className='text-slate-500'>
+                  {epic.description}
+                </Text>
               )}
-            </li>
+            </div>
           ))}
-        </ul>
-      </section>
-    </div>
+        </Stack>
+      </Card>
+    </Stack>
   );
 }

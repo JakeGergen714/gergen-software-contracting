@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useServices } from '../../../context/ServiceContext';
 import { CreateProposalInput, Proposal } from '../../../types/domain';
+import { Stack } from '../../../components/ui/container';
+import { Card, CardContent, CardHeader } from '../../../components/ui/card';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
+import { Textarea } from '../../../components/ui/textarea';
+import { Tag } from '../../../components/ui/tag';
+import { Loader2, Printer, Plus } from 'lucide-react';
 
 export default function AdminProjectProposals() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -37,118 +44,150 @@ export default function AdminProjectProposals() {
 
   if (loading)
     return (
-      <div className='p-8 text-center text-slate-500'>Loading proposals...</div>
+      <div className='flex justify-center items-center h-64'>
+        <Loader2 className='h-8 w-8 animate-spin text-brand-solid' />
+      </div>
     );
 
   return (
-    <div className='space-y-6'>
+    <Stack gap={6}>
       <div className='flex justify-between items-center no-print'>
-        <h2 className='text-xl font-semibold text-slate-900'>Proposals</h2>
+        <Heading level='h2' className='text-xl font-semibold text-text-primary'>
+          Proposals
+        </Heading>
         <div className='flex gap-2'>
-          <button
+          <Button
+            variant='outline'
             onClick={() => window.print()}
-            className='text-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 rounded-full'
+            className='border-border-subtle text-text-primary hover:bg-surface-alt'
           >
+            <Printer className='mr-2 h-4 w-4' />
             Print
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setCreating(true)}
-            className='bg-slate-900 text-white px-4 py-2 rounded-full text-sm font-semibold'
+            className='bg-brand-solid hover:bg-brand-solid/90 text-white'
           >
+            <Plus className='mr-2 h-4 w-4' />
             New Proposal
-          </button>
+          </Button>
         </div>
       </div>
 
       {creating && (
-        <div className='surface-card p-6 rounded-3xl space-y-4 border border-slate-200'>
-          <h3 className='font-semibold text-lg'>Draft New Proposal</h3>
-          <label className='block'>
-            <span className='text-sm text-slate-600'>Content (Markdown)</span>
-            <textarea
-              className='w-full mt-1 p-3 rounded-xl border border-slate-200'
-              rows={6}
-              value={form.content}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, content: e.target.value }))
-              }
-            />
-          </label>
-          <label className='block'>
-            <span className='text-sm text-slate-600'>Pricing / Terms</span>
-            <textarea
-              className='w-full mt-1 p-3 rounded-xl border border-slate-200'
-              rows={4}
-              value={form.pricing}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, pricing: e.target.value }))
-              }
-            />
-          </label>
-          <div className='flex justify-end gap-2'>
-            <button
-              onClick={() => setCreating(false)}
-              className='px-4 py-2 text-slate-600 font-medium'
+        <Card className='bg-surface border-border-subtle'>
+          <CardHeader>
+            <Heading
+              level='h3'
+              className='font-semibold text-lg text-text-primary'
             >
-              Cancel
-            </button>
-            <button
-              onClick={handleCreate}
-              disabled={!form.content || !form.pricing}
-              className='bg-slate-900 text-white px-6 py-2 rounded-full font-semibold disabled:opacity-50'
-            >
-              Create Version
-            </button>
-          </div>
-        </div>
+              Draft New Proposal
+            </Heading>
+          </CardHeader>
+          <CardContent>
+            <Stack gap={4}>
+              <div className='space-y-2'>
+                <Text variant='label' className='text-text-secondary'>
+                  Content (Markdown)
+                </Text>
+                <Textarea
+                  rows={6}
+                  value={form.content}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, content: e.target.value }))
+                  }
+                  className='bg-surface-alt border-border-subtle text-text-primary'
+                />
+              </div>
+              <div className='space-y-2'>
+                <Text variant='label' className='text-text-secondary'>
+                  Pricing / Terms
+                </Text>
+                <Textarea
+                  rows={4}
+                  value={form.pricing}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, pricing: e.target.value }))
+                  }
+                  className='bg-surface-alt border-border-subtle text-text-primary'
+                />
+              </div>
+              <div className='flex justify-end gap-2'>
+                <Button
+                  variant='ghost'
+                  onClick={() => setCreating(false)}
+                  className='text-text-muted hover:text-text-primary hover:bg-surface-alt'
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreate}
+                  disabled={!form.content || !form.pricing}
+                  className='bg-brand-solid hover:bg-brand-solid/90 text-white'
+                >
+                  Create Version
+                </Button>
+              </div>
+            </Stack>
+          </CardContent>
+        </Card>
       )}
 
-      <div className='space-y-4'>
+      <Stack gap={4}>
         {list.map((p) => (
-          <div
-            key={p.id}
-            className='surface-card p-6 rounded-3xl border border-slate-100 hover:shadow-sm transition-shadow'
-          >
-            <div className='flex justify-between items-start mb-4'>
-              <div>
-                <div className='flex items-center gap-2'>
-                  <span className='font-semibold text-slate-900'>
-                    Version {p.version}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      p.status === 'APPROVED'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : p.status === 'REJECTED'
-                        ? 'bg-rose-100 text-rose-700'
-                        : p.status === 'SUPERSEDED'
-                        ? 'bg-slate-100 text-slate-500'
-                        : 'bg-amber-100 text-amber-700'
-                    }`}
-                  >
-                    {p.status}
-                  </span>
-                </div>
-                <div className='text-xs text-slate-500 mt-1'>
-                  Created {new Date(p.createdAt).toLocaleDateString()}
+          <Card key={p.id} className='bg-surface border-border-subtle'>
+            <CardContent className='pt-6'>
+              <div className='flex justify-between items-start mb-4'>
+                <div>
+                  <div className='flex items-center gap-2'>
+                    <Text
+                      variant='body'
+                      className='font-semibold text-text-primary'
+                    >
+                      Version {p.version}
+                    </Text>
+                    <Tag
+                      variant={
+                        p.status === 'APPROVED'
+                          ? 'success'
+                          : p.status === 'REJECTED'
+                          ? 'error'
+                          : p.status === 'SUPERSEDED'
+                          ? 'neutral'
+                          : 'warning'
+                      }
+                    >
+                      {p.status}
+                    </Tag>
+                  </div>
+                  <Text variant='caption' className='mt-1 text-text-muted'>
+                    Created {new Date(p.createdAt).toLocaleDateString()}
+                  </Text>
                 </div>
               </div>
-            </div>
-            <div className='prose prose-sm max-w-none text-slate-600 mb-4'>
-              <div className='whitespace-pre-wrap'>{p.content}</div>
-            </div>
-            <div className='bg-slate-50 p-4 rounded-xl text-sm text-slate-700'>
-              <div className='font-medium mb-1'>Pricing & Terms</div>
-              <div className='whitespace-pre-wrap'>{p.pricing}</div>
-            </div>
-          </div>
+              <div className='prose prose-sm max-w-none text-text-muted mb-4'>
+                <div className='whitespace-pre-wrap'>{p.content}</div>
+              </div>
+              <div className='bg-surface-alt p-4 rounded-xl text-sm border border-border-subtle'>
+                <Text
+                  variant='body'
+                  className='font-medium mb-1 text-text-primary'
+                >
+                  Pricing & Terms
+                </Text>
+                <div className='whitespace-pre-wrap text-text-secondary'>
+                  {p.pricing}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
         {list.length === 0 && !creating && (
-          <div className='text-center py-12 text-slate-500 bg-slate-50 rounded-3xl border border-dashed border-slate-200'>
-            No proposals created yet.
+          <div className='text-center py-12 text-text-muted bg-surface-alt rounded-lg border border-dashed border-border-subtle'>
+            <Text variant='muted'>No proposals created yet.</Text>
           </div>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

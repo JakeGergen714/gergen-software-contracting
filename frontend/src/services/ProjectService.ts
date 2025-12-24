@@ -25,8 +25,6 @@ import {
   Ticket,
   CreateTicketInput,
   TicketStatus,
-  Metric,
-  CreateMetricInput,
   SprintAllocation,
 } from '../types/domain';
 import { HttpClient } from './httpClient';
@@ -96,8 +94,6 @@ export interface ProjectService {
   getTickets(projectId: string): Promise<Ticket[]>;
   createTicket(projectId: string, input: CreateTicketInput): Promise<Ticket>;
   updateTicketStatus(projectId: string, ticketId: string, status: TicketStatus): Promise<Ticket>;
-  getMetrics(projectId: string): Promise<Metric[]>;
-  createMetric(projectId: string, input: CreateMetricInput): Promise<Metric>;
   updateSprintAllocations(
     projectId: string,
     sprintId: string,
@@ -318,14 +314,6 @@ export class ApiProjectService implements ProjectService {
 
   updateTicketStatus(projectId: string, ticketId: string, status: TicketStatus): Promise<Ticket> {
     return this.client.put<Ticket>(`/api/projects/${projectId}/tickets/${ticketId}/status`, { status });
-  }
-
-  getMetrics(projectId: string): Promise<Metric[]> {
-    return this.client.get<Metric[]>(`/api/projects/${projectId}/metrics`);
-  }
-
-  createMetric(projectId: string, input: CreateMetricInput): Promise<Metric> {
-    return this.client.post<Metric>(`/api/projects/${projectId}/metrics`, input);
   }
 
   updateSprintAllocations(

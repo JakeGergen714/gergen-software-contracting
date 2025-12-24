@@ -1,46 +1,49 @@
 import { useProjectWorkspace } from '../../project/ProjectLayoutBase';
+import { Card } from '../../../components/ui/card';
+import { Stack } from '../../../components/ui/container';
+import { Heading, Text } from '../../../components/ui/typography';
 
 export default function BusinessProjectOverview() {
   const { project } = useProjectWorkspace();
 
   return (
-    <section className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6'>
-      <div className='space-y-2'>
-        <p className='text-sm uppercase tracking-wide text-slate-500'>
-          Project
-        </p>
-        <h1 className='text-2xl font-semibold text-slate-900'>
-          {project.name}
-        </h1>
-        {project.description && (
-          <p className='text-sm text-slate-600'>{project.description}</p>
-        )}
-      </div>
-
-      <div className='grid gap-4 sm:grid-cols-2 text-sm text-slate-700'>
-        <div className='space-y-1'>
-          <p className='text-xs uppercase tracking-wide text-slate-500'>
-            Status
-          </p>
-          <p className='font-medium text-slate-900'>{project.stage}</p>
-          {project.statusNote && (
-            <p className='text-slate-600'>{project.statusNote}</p>
+    <Card>
+      <Stack gap={6}>
+        <Stack gap={2}>
+          <Text variant='eyebrow'>Project</Text>
+          <Heading level='h2'>{project.name}</Heading>
+          {project.description && (
+            <Text variant='body' className='text-slate-600'>
+              {project.description}
+            </Text>
           )}
+        </Stack>
+
+        <div className='grid gap-4 sm:grid-cols-2'>
+          <Stack gap={1}>
+            <Text variant='eyebrow'>Status</Text>
+            <Text variant='body' weight='medium'>
+              {project.stage}
+            </Text>
+            {project.statusNote && (
+              <Text variant='body' className='text-slate-600'>
+                {project.statusNote}
+              </Text>
+            )}
+          </Stack>
+          <Stack gap={1}>
+            <Text variant='eyebrow'>Basics</Text>
+            <Text variant='body'>
+              <span className='text-slate-500'>Kickoff:</span>{' '}
+              {new Date(project.kickoffCallAt).toLocaleDateString()}
+            </Text>
+            <Text variant='body'>
+              <span className='text-slate-500'>Last updated:</span>{' '}
+              {new Date(project.updatedAt).toLocaleDateString()}
+            </Text>
+          </Stack>
         </div>
-        <div className='space-y-1'>
-          <p className='text-xs uppercase tracking-wide text-slate-500'>
-            Basics
-          </p>
-          <p>
-            <span className='text-slate-500'>Kickoff:</span>{' '}
-            {new Date(project.kickoffCallAt).toLocaleDateString()}
-          </p>
-          <p>
-            <span className='text-slate-500'>Last updated:</span>{' '}
-            {new Date(project.updatedAt).toLocaleDateString()}
-          </p>
-        </div>
-      </div>
-    </section>
+      </Stack>
+    </Card>
   );
 }

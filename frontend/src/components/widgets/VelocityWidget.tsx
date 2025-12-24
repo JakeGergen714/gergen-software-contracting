@@ -16,7 +16,7 @@ export const VelocityWidget: React.FC<VelocityWidgetProps> = ({
         {velocity.map((v, i) => (
           <div key={i} className='flex flex-col items-center flex-1'>
             <div
-              className='w-full bg-blue-500 rounded-t'
+              className='w-full bg-brand-solid rounded-t'
               style={{ height: `${Math.min(v * 2, 100)}%` }}
             />
             <span className='text-xs mt-1'>{labels[i]}</span>

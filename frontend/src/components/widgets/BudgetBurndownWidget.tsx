@@ -17,13 +17,13 @@ export const BudgetBurndownWidget: React.FC<BudgetBurndownWidgetProps> = ({
     <div className='bg-white p-4 rounded shadow'>
       <h3 className='text-lg font-bold mb-2'>Budget Burn-down</h3>
       <div className='mb-2'>
-        <span className='text-sm text-gray-600'>
+        <span className='text-sm text-text-muted'>
           Total Budget: ${totalBudget.toLocaleString()}
         </span>
       </div>
-      <div className='w-full bg-gray-200 rounded-full h-4 mb-2'>
+      <div className='w-full bg-surface-muted rounded-full h-4 mb-2'>
         <div
-          className='bg-green-500 h-4 rounded-full'
+          className='bg-brand-solid h-4 rounded-full'
           style={{ width: `${spentPercentage}%` }}
         ></div>
       </div>

@@ -1,5 +1,7 @@
 import { ReactNode } from 'react';
 import clsx from 'clsx';
+import { Heading, Text } from './typography';
+import { Button } from './button';
 
 interface ModalProps {
   title: string;
@@ -36,18 +38,18 @@ export function Modal({
         <div className='border-b border-slate-100 px-5 py-4'>
           <div className='flex items-start justify-between gap-3'>
             <div>
-              <h3 className='text-xl font-semibold text-slate-900'>{title}</h3>
+              <Heading level='h3' className='text-xl'>
+                {title}
+              </Heading>
               {description && (
-                <p className='text-sm text-slate-500'>{description}</p>
+                <Text variant='body' className='text-slate-500'>
+                  {description}
+                </Text>
               )}
             </div>
-            <button
-              type='button'
-              onClick={onClose}
-              className='rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50'
-            >
+            <Button variant='outline' size='sm' onClick={onClose}>
               Close
-            </button>
+            </Button>
           </div>
         </div>
         <div className='px-5 py-4'>{children}</div>

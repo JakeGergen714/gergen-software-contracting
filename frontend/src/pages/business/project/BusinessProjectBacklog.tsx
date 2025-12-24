@@ -3,13 +3,21 @@ import { Modal } from '../../../components/ui/Modal';
 import { Story, StoryStage } from '../../../types/domain';
 import { useProjectWorkspace } from '../../project/ProjectLayoutBase';
 import { useServices } from '../../../context/ServiceContext';
+import { Card } from '../../../components/ui/card';
+import { Stack } from '../../../components/ui/container';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
+import { Tag } from '../../../components/ui/tag';
 
-const stageBadge: Record<StoryStage, string> = {
-  BACKLOG: 'bg-slate-100 text-slate-600',
-  READY: 'bg-amber-100 text-amber-800',
-  IN_PROGRESS: 'bg-sky-100 text-sky-800',
-  IN_REVIEW: 'bg-indigo-100 text-indigo-800',
-  DONE: 'bg-emerald-100 text-emerald-800',
+const stageBadge: Record<
+  StoryStage,
+  'neutral' | 'warning' | 'soft' | 'success' | 'outline'
+> = {
+  BACKLOG: 'neutral',
+  READY: 'warning',
+  IN_PROGRESS: 'soft',
+  IN_REVIEW: 'soft',
+  DONE: 'success',
 };
 
 export default function BusinessProjectBacklog() {
@@ -56,9 +64,7 @@ export default function BusinessProjectBacklog() {
       });
       setProject(updated);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Could not update story.'
-      );
+      setError(err instanceof Error ? err.message : 'Could not update story.');
     } finally {
       setUpdating(false);
     }
@@ -67,18 +73,20 @@ export default function BusinessProjectBacklog() {
   const renderStoryList = (stories: Story[], emptyLabel: string) => {
     if (stories.length === 0) {
       return (
-        <p className='rounded-md border border-dashed border-slate-300 bg-white/60 px-3 py-2 text-sm text-slate-500'>
-          {emptyLabel}
-        </p>
+        <div className='rounded-md border border-dashed border-slate-300 bg-white/60 px-3 py-2'>
+          <Text variant='small' className='text-slate-500'>
+            {emptyLabel}
+          </Text>
+        </div>
       );
     }
 
     return (
-      <ul className='space-y-2'>
+      <Stack gap={2}>
         {stories.map((story) => {
           const epic = project.epics.find((e) => e.id === story.epicId);
           return (
-            <li key={story.id}>
+            <div key={story.id}>
               <button
                 type='button'
                 onClick={() => openStoryModal(story)}
@@ -86,109 +94,116 @@ export default function BusinessProjectBacklog() {
               >
                 <div className='flex items-start justify-between gap-3'>
                   <div className='space-y-1'>
-                    <p className='font-semibold text-slate-900'>
+                    <Text weight='semibold' className='text-slate-900'>
                       {story.title}
-                    </p>
-                    <p className='text-xs text-slate-500'>
+                    </Text>
+                    <Text variant='caption' className='text-slate-500'>
                       {epic ? epic.name : 'Untitled epic'} •{' '}
                       {story.acceptanceCriteria.length} checks
-                    </p>
-                    <p className='text-xs text-slate-500 line-clamp-2'>
-                      {story.description || 'Description not captured yet.'}
-                    </p>
-                  </div>
-                    <div className='text-right space-y-1'>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                        stageBadge[story.stage]
-                      }`}
+                    </Text>
+                    <Text
+                      variant='caption'
+                      className='text-slate-500 line-clamp-2'
                     >
+                      {story.description || 'Description not captured yet.'}
+                    </Text>
+                  </div>
+                  <div className='text-right space-y-1 flex flex-col items-end'>
+                    <Tag variant={stageBadge[story.stage]}>
                       {story.stage === 'READY' ? 'Refined' : 'Needs refinement'}
-                    </span>
-                    <div className='mt-2 text-xs font-semibold text-slate-900'>
+                    </Tag>
+                    <Text
+                      variant='caption'
+                      weight='semibold'
+                      className='mt-2 text-slate-900'
+                    >
                       {story.points ? `${story.points} pts` : 'Unestimated'}
-                    </div>
+                    </Text>
                     {story.stage === 'BACKLOG' && (
-                      <button
-                        type='button'
-                        onClick={() => handleMarkReady(story)}
-                        className='mt-1 rounded-md border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 disabled:opacity-50'
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        className='mt-1 h-6 text-[11px] px-2'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMarkReady(story);
+                        }}
                         disabled={updating}
                       >
                         Mark ready
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
               </button>
-            </li>
+            </div>
           );
         })}
-      </ul>
+      </Stack>
     );
   };
 
   return (
-    <div className='space-y-4'>
+    <Stack gap={4}>
       <div className='flex flex-wrap items-center justify-between gap-3'>
         <div>
-          <h1 className='text-xl font-semibold text-slate-900'>Backlog</h1>
+          <Heading level='h1'>Backlog</Heading>
         </div>
         {error && (
-          <p className='text-xs text-rose-600'>{error}</p>
+          <Text variant='caption' className='text-rose-600'>
+            {error}
+          </Text>
         )}
       </div>
 
       <div className='grid gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]'>
-        <div className='space-y-6'>
-          <section className='rounded-xl border border-slate-200 bg-white p-4 shadow-sm'>
-            <header className='flex items-center justify-between'>
+        <Stack gap={6}>
+          <Card>
+            <Stack gap={4}>
+              <header className='flex items-center justify-between'>
+                <div>
+                  <Text variant='eyebrow' className='text-amber-600'>
+                    Refined backlog
+                  </Text>
+                  <Heading level='h2' className='text-lg'>
+                    Ready for the next sprint
+                  </Heading>
+                </div>
+                <Tag variant='outline'>{refinedStories.length} items</Tag>
+              </header>
               <div>
-                <p className='text-xs font-semibold uppercase tracking-wide text-amber-600'>
-                  Refined backlog
-                </p>
-                <h2 className='text-lg font-semibold text-slate-900'>
-                  Ready for the next sprint
-                </h2>
+                {renderStoryList(refinedStories, 'Nothing refined yet.')}
               </div>
-              <span className='rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600'>
-                {refinedStories.length} items
-              </span>
-            </header>
-            <div className='mt-4'>
-              {renderStoryList(refinedStories, 'Nothing refined yet.')}
-            </div>
-          </section>
+            </Stack>
+          </Card>
 
-          <section className='rounded-xl border border-slate-200 bg-white p-4 shadow-sm'>
-            <header className='flex items-center justify-between'>
+          <Card>
+            <Stack gap={4}>
+              <header className='flex items-center justify-between'>
+                <div>
+                  <Text variant='eyebrow'>Needs refinement</Text>
+                  <Heading level='h2' className='text-lg'>
+                    Raw backlog
+                  </Heading>
+                </div>
+                <Tag variant='outline'>{backlogStories.length} ideas</Tag>
+              </header>
               <div>
-                <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
-                  Needs refinement
-                </p>
-                <h2 className='text-lg font-semibold text-slate-900'>
-                  Raw backlog
-                </h2>
+                {renderStoryList(
+                  backlogStories,
+                  'No backlog ideas captured yet.'
+                )}
               </div>
-              <span className='rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600'>
-                {backlogStories.length} ideas
-              </span>
-            </header>
-            <div className='mt-4'>
-              {renderStoryList(
-                backlogStories,
-                'No backlog ideas captured yet.'
-              )}
-            </div>
-          </section>
-        </div>
+            </Stack>
+          </Card>
+        </Stack>
 
         <aside className='space-y-4'>
-          <section className='rounded-xl border border-slate-200 bg-white p-4 shadow-sm'>
-            <h3 className='text-base font-semibold text-slate-900'>
+          <Card>
+            <Heading level='h3' className='text-base'>
               How we work stories
-            </h3>
-          </section>
+            </Heading>
+          </Card>
         </aside>
       </div>
 
@@ -198,33 +213,29 @@ export default function BusinessProjectBacklog() {
         title='Story details'
       >
         {selectedStory && (
-          <div className='space-y-3 text-sm text-slate-700'>
+          <Stack gap={3}>
             <div>
-              <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
-                Title
-              </p>
-              <p className='text-base font-semibold text-slate-900'>
+              <Text variant='eyebrow'>Title</Text>
+              <Text weight='semibold' className='text-lg text-slate-900'>
                 {selectedStory.title}
-              </p>
+              </Text>
             </div>
             {selectedStory.description && (
               <div>
-                <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
-                  Description
-                </p>
-                <p className='text-sm text-slate-700'>
+                <Text variant='eyebrow'>Description</Text>
+                <Text variant='body' className='text-slate-700'>
                   {selectedStory.description}
-                </p>
+                </Text>
               </div>
             )}
             {selectedStory.acceptanceCriteria.length > 0 && (
               <div>
-                <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
-                  Acceptance criteria
-                </p>
+                <Text variant='eyebrow'>Acceptance criteria</Text>
                 <ul className='mt-1 list-disc space-y-1 pl-5'>
                   {selectedStory.acceptanceCriteria.map((criteria) => (
-                    <li key={criteria}>{criteria}</li>
+                    <li key={criteria}>
+                      <Text variant='body'>{criteria}</Text>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -238,9 +249,9 @@ export default function BusinessProjectBacklog() {
                 </span>
               )}
             </div>
-          </div>
+          </Stack>
         )}
       </Modal>
-    </div>
+    </Stack>
   );
 }

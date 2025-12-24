@@ -1,73 +1,86 @@
-import { useMemo, useState } from 'react';
-import { SprintBoard } from '../../../components/admin/SprintBoard';
+import React, { useMemo, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { useServices } from '../../../context/ServiceContext';
 import { StoryStage } from '../../../types/domain';
-import { useProjectWorkspace } from '../../project/ProjectLayoutBase';
+import { ProjectWorkspaceOutletContext } from '../../project/ProjectLayoutBase';
 import { useDomainModal } from '../../../components/domain/DomainModalProvider';
-import { FaDownload } from 'react-icons/fa';
+import { Card } from '../../../components/ui/card';
+import { Stack } from '../../../components/ui/container';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
+import { Download } from 'lucide-react';
+
+const STAGES: StoryStage[] = ['READY', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
+
+const WIP_LIMITS: Record<StoryStage, number> = {
+  BACKLOG: 100,
+  READY: 10,
+  IN_PROGRESS: 5,
+  IN_REVIEW: 5,
+  DONE: 100,
+};
 
 export default function AdminSprintActive() {
-  const { project, setProject } = useProjectWorkspace();
+  const { project, setProject } =
+    useOutletContext<ProjectWorkspaceOutletContext>();
   const { project: projectService, reports } = useServices();
-  const { openSprint, openStory } = useDomainModal();
-  const activeSprint = project.sprints.find(
-    (sprint) => sprint.status === 'ACTIVE'
-  );
-  const [updating, setUpdating] = useState(false);
-  const [exporting, setExporting] = useState(false);
+  const { openStory } = useDomainModal();
+  const [draggedStoryId, setDraggedStoryId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const activeSprint = useMemo(
+    () => project.sprints.find((sprint) => sprint.status === 'ACTIVE'),
+    [project.sprints]
+  );
 
   const sprintStories = useMemo(
     () =>
       project.stories.filter((story) =>
-        activeSprint
-          ? story.sprintId === activeSprint.id
-          : story.stage !== 'BACKLOG'
+        activeSprint ? story.sprintId === activeSprint.id : false
       ),
     [project.stories, activeSprint]
   );
 
-  const doneStories = sprintStories.filter((story) => story.stage === 'DONE');
-  const remainingStories = sprintStories.length - doneStories.length;
-  const blockers = sprintStories.filter((story) => story.stage === 'IN_REVIEW');
-  const [moveUnfinishedToNext, setMoveUnfinishedToNext] = useState(true);
-
-  const handleUpdateStage = async (storyId: string, stage: StoryStage) => {
-    setUpdating(true);
-    setError(null);
-    try {
-      const updated = await projectService.updateStoryStage(
-        project.id,
-        storyId,
-        stage
-      );
-      setProject(updated);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Could not update story status.'
-      );
-    } finally {
-      setUpdating(false);
-    }
+  const handleDragStart = (e: React.DragEvent, storyId: string) => {
+    setDraggedStoryId(storyId);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleEndSprint = async () => {
-    if (!activeSprint) return;
-    setUpdating(true);
-    setError(null);
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, stage: StoryStage) => {
+    e.preventDefault();
+    if (!draggedStoryId || !activeSprint) return;
+
+    const story = sprintStories.find((s) => s.id === draggedStoryId);
+    if (!story || story.stage === stage) return;
+
     try {
-      const updated = await projectService.endSprint(
+      const updated = await projectService.updateStory(
         project.id,
-        activeSprint.id,
+        draggedStoryId,
         {
-          moveUnfinishedToNextSprint: moveUnfinishedToNext,
+          epicId: story.epicId,
+          title: story.title,
+          description: story.description,
+          acceptanceCriteria: story.acceptanceCriteria,
+          points: story.points,
+          sprintId: story.sprintId ?? null,
+          stage: stage,
+          planningOrder: story.planningOrder ?? null,
         }
       );
       setProject(updated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not end sprint.');
+      console.error('Failed to update story stage', err);
+      setError('Failed to update story stage');
     } finally {
-      setUpdating(false);
+      setDraggedStoryId(null);
     }
   };
 
@@ -85,121 +98,102 @@ export default function AdminSprintActive() {
 
   if (!activeSprint) {
     return (
-      <div className='rounded-3xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-500'>
+      <div className='rounded-3xl border border-dashed border-border-subtle bg-surface px-6 py-10 text-center text-sm text-text-muted'>
         No active sprint. Kick one off from the Planning tab to start tracking.
       </div>
     );
   }
 
+  const getStoriesByStage = (stage: StoryStage) =>
+    sprintStories.filter((s) => s.stage === stage);
+
   return (
-    <div className='space-y-6'>
+    <Stack gap={6} className='h-full'>
       {error && (
-        <div className='rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700'>
+        <div className='rounded-2xl border border-brand-strong/20 bg-brand-strong/5 text-brand-strong px-4 py-2 text-sm'>
           {error}
         </div>
       )}
-      <section className='rounded-3xl border border-white/80 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)]'>
-        <div className='flex flex-wrap items-center gap-4 text-sm text-slate-600'>
-          <div>
-            <p className='text-xs uppercase tracking-[0.2em] text-slate-400'>
-              Burn-down
-            </p>
-            <p className='text-lg font-semibold text-slate-900'>
-              {doneStories.length} done · {remainingStories} remaining
-            </p>
-            <p className='text-xs text-slate-500'>
-              {new Date(activeSprint.startAt).toLocaleDateString()} –{' '}
-              {new Date(activeSprint.endAt).toLocaleDateString()} • Goal:{' '}
-              {activeSprint.goal || 'Unset'}
-            </p>
-          </div>
-          <button
-            type='button'
-            className='ml-auto text-[11px] font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700'
-            onClick={() => openSprint(activeSprint.id)}
-          >
-            Open sprint modal
-          </button>
-          {updating && (
-            <div className='ml-auto rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500'>
-              Syncing…
-            </div>
-          )}
-        </div>
-      </section>
 
-      <section className='rounded-3xl border border-slate-100 bg-white p-5 shadow-sm'>
-        <div className='flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600'>
-          <h3 className='text-base font-semibold text-slate-900'>
-            Sprint board
-          </h3>
-          <div className='flex flex-wrap items-center gap-3'>
-            <button
-              onClick={handleExport}
-              disabled={exporting}
-              className='flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors disabled:opacity-50'
-            >
-              <FaDownload size={12} />
-              {exporting ? 'Exporting...' : 'Export CSV'}
-            </button>
-            <label className='flex items-center gap-2 text-[11px] uppercase tracking-wide'>
-              <input
-                type='checkbox'
-                className='h-3 w-3 rounded border-slate-300'
-                checked={moveUnfinishedToNext}
-                onChange={(e) => setMoveUnfinishedToNext(e.target.checked)}
-              />
-              Move unfinished to next sprint
-            </label>
-            <button
-              type='button'
-              onClick={handleEndSprint}
-              className='rounded-full bg-slate-900 px-4 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50'
-              disabled={updating}
-            >
-              End sprint
-            </button>
-          </div>
-        </div>
-        <div className='mt-4'>
-          <SprintBoard
-            stories={sprintStories}
-            epics={project.epics}
-            onUpdateStage={handleUpdateStage}
-          />
-        </div>
-      </section>
+      <div className='flex justify-end'>
+        <Button
+          variant='ghost'
+          onClick={handleExport}
+          disabled={exporting}
+          className='gap-2'
+        >
+          <Download className='h-4 w-4' />
+          {exporting ? 'Exporting...' : 'Export CSV'}
+        </Button>
+      </div>
 
-      <section className='rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-[0_15px_45px_rgba(245,158,11,0.25)]'>
-        <p className='text-xs font-semibold uppercase tracking-[0.2em] text-amber-800'>
-          Blockers
-        </p>
-        {blockers.length > 0 ? (
-          <ul className='mt-3 space-y-2 text-sm text-amber-900'>
-            {blockers.map((story) => (
-              <li
-                key={story.id}
-                className='flex items-center justify-between gap-3 rounded-2xl bg-white/60 px-3 py-2 text-amber-900'
+      <div className='h-full overflow-x-auto'>
+        <div className='flex h-full space-x-4 min-w-max pb-4'>
+          {STAGES.map((stage) => {
+            const stageStories = getStoriesByStage(stage);
+            const isOverLimit = stageStories.length > WIP_LIMITS[stage];
+
+            return (
+              <div
+                key={stage}
+                className='flex flex-col w-80 bg-surface-raised rounded-lg p-4'
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, stage)}
               >
-                <button
-                  type='button'
-                  className='font-semibold text-left hover:underline'
-                  onClick={() => openStory(story.id)}
-                >
-                  {story.title}
-                </button>
-                <span className='text-xs uppercase tracking-wide'>
-                  Waiting on review
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className='mt-2 text-sm text-amber-900'>
-            No blockers flagged. Keep monitoring QA and release checklists.
-          </p>
-        )}
-      </section>
-    </div>
+                <div className='flex justify-between items-center mb-4'>
+                  <Heading level='h3' className='text-text-primary'>
+                    {stage.replace('_', ' ')}
+                  </Heading>
+                  <Badge variant={isOverLimit ? 'destructive' : 'secondary'}>
+                    {stageStories.length} / {WIP_LIMITS[stage]}
+                  </Badge>
+                </div>
+
+                <div className='flex-1 overflow-y-auto space-y-3 min-h-[200px]'>
+                  {stageStories.map((story) => (
+                    <div
+                      key={story.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, story.id)}
+                      className='cursor-move'
+                    >
+                      <Card
+                        className='p-3 hover:shadow-md transition-shadow bg-surface cursor-pointer'
+                        onClick={() => openStory(story.id)}
+                      >
+                        <Text
+                          weight='medium'
+                          className='text-text-primary mb-1'
+                        >
+                          {story.title}
+                        </Text>
+                        {story.points && (
+                          <Text
+                            variant='caption'
+                            className='text-text-muted mb-2'
+                          >
+                            {story.points} pts
+                          </Text>
+                        )}
+                        <div className='flex flex-wrap gap-1'>
+                          {story.tags?.map((tag) => (
+                            <span
+                              key={tag.id}
+                              className='text-[10px] px-1.5 py-0.5 bg-brand-soft text-brand-strong rounded'
+                            >
+                              {tag.name}
+                            </span>
+                          ))}
+                        </div>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Stack>
   );
 }

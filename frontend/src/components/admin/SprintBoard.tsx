@@ -18,9 +18,9 @@ const columns: {
 
 const stageClasses: Record<string, string> = {
   READY: 'border-amber-200 bg-amber-50 text-amber-800',
-  IN_PROGRESS: 'border-sky-200 bg-sky-50 text-sky-800',
-  IN_REVIEW: 'border-indigo-200 bg-indigo-50 text-indigo-800',
-  DONE: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+  IN_PROGRESS: 'border-brand-soft bg-brand-soft/50 text-brand-solid',
+  IN_REVIEW: 'border-brand-strong/20 bg-brand-strong/5 text-brand-strong',
+  DONE: 'border-stone-200 bg-stone-50 text-stone-800',
 };
 
 const moveOptions: { key: StoryStage; label: string }[] = [

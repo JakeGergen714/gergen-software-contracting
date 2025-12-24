@@ -1,14 +1,33 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Modal } from '../../../components/ui/Modal';
 import { useServices } from '../../../context/ServiceContext';
 import { Sprint, Story, SprintAllocation } from '../../../types/domain';
-import { useProjectWorkspace } from '../../project/ProjectLayoutBase';
+import { ProjectWorkspaceOutletContext } from '../../project/ProjectLayoutBase';
 import { useDomainModal } from '../../../components/domain/DomainModalProvider';
+import { Stack } from '../../../components/ui/container';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
+import { Tag } from '../../../components/ui/tag';
+import { Input } from '../../../components/ui/input';
+import { Textarea } from '../../../components/ui/textarea';
+import { Card } from '../../../components/ui/card';
+import { cn } from '../../../utils/cn';
 
-const statusStyles: Record<string, string> = {
-  ACTIVE: 'border-sky-200 bg-sky-50 text-sky-800',
-  PLANNED: 'border-amber-200 bg-amber-50 text-amber-800',
-  COMPLETE: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+const getSprintStatusVariant = (
+  status: string
+): 'neutral' | 'success' | 'warning' | 'error' => {
+  switch (status) {
+    case 'ACTIVE':
+      return 'success';
+    case 'PLANNED':
+      return 'neutral';
+    case 'COMPLETE':
+      return 'neutral';
+    default:
+      return 'neutral';
+  }
 };
 
 type SprintDraft = {
@@ -60,7 +79,8 @@ const buildSprintDraft = (existingSprints: Sprint[]): SprintDraft => {
 };
 
 export default function AdminSprintPlanning() {
-  const { project, setProject } = useProjectWorkspace();
+  const { project, setProject } =
+    useOutletContext<ProjectWorkspaceOutletContext>();
   const { project: projectService } = useServices();
   const { openStory, openSprint } = useDomainModal();
   const [selectedSprintId, setSelectedSprintId] = useState(() => {
@@ -148,145 +168,131 @@ export default function AdminSprintPlanning() {
   );
 
   useEffect(() => {
-    if (!selectedSprintId && sortedSprints[0]) {
-      setSelectedSprintId(sortedSprints[0].id);
-    } else if (
-      selectedSprintId &&
-      !sortedSprints.some((sprint) => sprint.id === selectedSprintId) &&
-      sortedSprints[0]
-    ) {
+    if (!selectedSprintId && sortedSprints.length > 0) {
       setSelectedSprintId(sortedSprints[0].id);
     }
   }, [selectedSprintId, sortedSprints]);
 
-  const storiesBySprint = useMemo(() => {
-    const map = new Map<string, Story[]>();
-    project.stories.forEach((story) => {
-      if (!story.sprintId) return;
-      const bucket = map.get(story.sprintId) ?? [];
-      bucket.push(story);
-      map.set(story.sprintId, bucket);
+  const sprintStats = useMemo(() => {
+    return sortedSprints.map((sprint) => {
+      const stories = project.stories.filter((s) => s.sprintId === sprint.id);
+      const points = stories.reduce((sum, s) => sum + (s.points || 0), 0);
+      const completed = stories.filter((s) => s.stage === 'DONE').length;
+      const total = stories.length;
+      const completion = total > 0 ? Math.round((completed / total) * 100) : 0;
+      return { sprint, points, completion };
     });
-    return map;
-  }, [project.stories]);
-
-  const selectedStories = selectedSprint
-    ? storiesBySprint.get(selectedSprint.id) ?? []
-    : [];
-
-  const storyIndexLookup = useMemo(() => {
-    const map = new Map<string, number>();
-    project.stories.forEach((story, index) => map.set(story.id, index));
-    return map;
-  }, [project.stories]);
+  }, [sortedSprints, project.stories]);
 
   const plannedStories = useMemo(() => {
-    return [...selectedStories].sort((a, b) => {
-      const fallbackA = storyIndexLookup.get(a.id) ?? 0;
-      const fallbackB = storyIndexLookup.get(b.id) ?? 0;
-      const orderA =
-        a.planningOrder === null || a.planningOrder === undefined
-          ? fallbackA
-          : a.planningOrder;
-      const orderB =
-        b.planningOrder === null || b.planningOrder === undefined
-          ? fallbackB
-          : b.planningOrder;
-      return orderA - orderB;
-    });
-  }, [selectedStories, storyIndexLookup]);
+    if (!selectedSprint) return [];
+    return project.stories
+      .filter((s) => s.sprintId === selectedSprint.id)
+      .sort((a, b) => (a.planningOrder ?? 0) - (b.planningOrder ?? 0));
+  }, [project.stories, selectedSprint]);
+
+  const readyBacklog = useMemo(() => {
+    return project.stories.filter((s) => !s.sprintId && s.stage === 'READY');
+  }, [project.stories]);
+
+  const carryOverStories = useMemo(() => {
+    if (!selectedSprint) return [];
+    // Find previous sprint
+    const sorted = [...project.sprints].sort(
+      (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
+    );
+    const currentIndex = sorted.findIndex((s) => s.id === selectedSprint.id);
+    if (currentIndex <= 0) return [];
+    const prevSprint = sorted[currentIndex - 1];
+
+    // Stories in previous sprint that are not DONE
+    return project.stories.filter(
+      (s) => s.sprintId === prevSprint.id && s.stage !== 'DONE'
+    );
+  }, [project.stories, project.sprints, selectedSprint]);
+
+  const velocityInsights = useMemo(() => {
+    const completedSprints = project.sprints
+      .filter((s) => s.status === 'COMPLETE')
+      .sort((a, b) => new Date(b.endAt).getTime() - new Date(a.endAt).getTime())
+      .slice(0, 3);
+
+    if (completedSprints.length === 0) return { averageDonePoints: 0 };
+
+    const totalPoints = completedSprints.reduce((sum, sprint) => {
+      const sprintStories = project.stories.filter(
+        (s) => s.sprintId === sprint.id && s.stage === 'DONE'
+      );
+      return sum + sprintStories.reduce((p, s) => p + (s.points || 0), 0);
+    }, 0);
+
+    return {
+      averageDonePoints: Math.round(totalPoints / completedSprints.length),
+    };
+  }, [project.sprints, project.stories]);
 
   const plannedPoints = useMemo(
-    () => plannedStories.reduce((sum, story) => sum + (story.points ?? 0), 0),
+    () => plannedStories.reduce((sum, s) => sum + (s.points || 0), 0),
     [plannedStories]
   );
 
-  const readyBacklog = useMemo(
-    () =>
-      project.stories.filter(
-        (story) => story.stage === 'READY' && !story.sprintId
-      ),
-    [project.stories]
-  );
+  const plannedVsAverageDelta = useMemo(() => {
+    if (!velocityInsights.averageDonePoints) return null;
+    return plannedPoints - velocityInsights.averageDonePoints;
+  }, [plannedPoints, velocityInsights.averageDonePoints]);
 
   const unestimatedPlanned = useMemo(
     () =>
-      plannedStories.filter(
-        (story) => story.points === null || story.points === undefined
-      ).length,
+      plannedStories.filter((s) => s.points === undefined || s.points === null)
+        .length,
     [plannedStories]
   );
 
   const readyWithoutPoints = useMemo(
     () =>
-      readyBacklog.filter(
-        (story) => story.points === null || story.points === undefined
-      ).length,
+      readyBacklog.filter((s) => s.points === undefined || s.points === null)
+        .length,
     [readyBacklog]
   );
 
-  const carryOverStories = useMemo(() => {
-    // Find the most recently completed sprint
-    const completedSprints = sortedSprints.filter(
-      (s) => s.status === 'COMPLETE'
-    );
-    if (completedSprints.length === 0) return [];
+  const persistStorySequence = async (stories: Story[]) => {
+    try {
+      const updates = stories.map((story, index) => ({
+        storyId: story.id,
+        planningOrder: index,
+      }));
+      // Optimistic update
+      const updatedStories = project.stories.map((s) => {
+        const update = updates.find((u) => u.storyId === s.id);
+        return update ? { ...s, planningOrder: update.planningOrder } : s;
+      });
+      setProject({ ...project, stories: updatedStories });
 
-    const lastCompleted = completedSprints[0];
-    const stories = storiesBySprint.get(lastCompleted.id) ?? [];
-
-    // Find stories that are not DONE
-    return stories.filter((s) => s.stage !== 'DONE');
-  }, [sortedSprints, storiesBySprint]);
-
-  const sprintStats = useMemo(
-    () =>
-      sortedSprints.map((sprint) => {
-        const stories = storiesBySprint.get(sprint.id) ?? [];
-        const done = stories.filter((story) => story.stage === 'DONE').length;
-        const total = stories.length;
-        const points = stories.reduce(
-          (sum, story) => sum + (story.points ?? 0),
-          0
-        );
-        const donePoints = stories.reduce(
-          (sum, story) =>
-            sum + (story.stage === 'DONE' ? story.points ?? 0 : 0),
-          0
-        );
-        const completion = total === 0 ? 0 : Math.round((done / total) * 100);
-        return { sprint, stories, done, total, points, completion, donePoints };
-      }),
-    [sortedSprints, storiesBySprint]
-  );
-
-  const velocityInsights = useMemo(() => {
-    const completed = sprintStats.filter(
-      ({ sprint }) => sprint.status === 'COMPLETE'
-    );
-    const recent = completed.slice(0, 3);
-    const averageDonePoints =
-      recent.length === 0
-        ? 0
-        : Math.round(
-            recent.reduce((sum, stat) => sum + stat.donePoints, 0) /
-              recent.length
-          );
-    return {
-      averageDonePoints,
-      lastCompletedPoints: recent[0]?.donePoints ?? 0,
-    };
-  }, [sprintStats]);
-
-  const plannedVsAverageDelta =
-    velocityInsights.averageDonePoints > 0
-      ? plannedPoints - velocityInsights.averageDonePoints
-      : null;
+      // Sequential update since no bulk API
+      for (const update of updates) {
+        const story = project.stories.find((s) => s.id === update.storyId);
+        if (story) {
+          await projectService.updateStory(project.id, story.id, {
+            epicId: story.epicId,
+            title: story.title,
+            description: story.description,
+            acceptanceCriteria: story.acceptanceCriteria,
+            points: story.points,
+            sprintId: story.sprintId,
+            stage: story.stage,
+            planningOrder: update.planningOrder,
+          });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to save order');
+    }
+  };
 
   const handleAddStoryToSprint = async (story: Story) => {
     if (!selectedSprint) return;
     setUpdating(true);
-    setError(null);
     try {
       const updated = await projectService.updateStory(project.id, story.id, {
         epicId: story.epicId,
@@ -296,46 +302,38 @@ export default function AdminSprintPlanning() {
         points: story.points,
         sprintId: selectedSprint.id,
         stage: story.stage,
-        planningOrder: plannedStories.length + 1,
+        planningOrder: story.planningOrder,
       });
       setProject(updated);
+      setSelectedBacklogIds((prev) => prev.filter((id) => id !== story.id));
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Could not assign story to sprint.'
+        err instanceof Error ? err.message : 'Could not add story to sprint.'
       );
     } finally {
       setUpdating(false);
     }
   };
 
-  const handleBulkAddToSprint = async () => {
-    if (!selectedSprint || selectedBacklogIds.length === 0) return;
+  const handleRemoveStoryFromSprint = async (story: Story) => {
     setUpdating(true);
-    setError(null);
     try {
-      let current = project;
-      // Process sequentially to maintain order if needed, or just parallel
-      for (const storyId of selectedBacklogIds) {
-        const story = current.stories.find((s) => s.id === storyId);
-        if (!story) continue;
-        current = await projectService.updateStory(current.id, storyId, {
-          epicId: story.epicId,
-          title: story.title,
-          description: story.description,
-          acceptanceCriteria: story.acceptanceCriteria,
-          points: story.points,
-          sprintId: selectedSprint.id,
-          stage: story.stage,
-          planningOrder: plannedStories.length + 1, // This might need better logic for bulk
-        });
-      }
-      setProject(current);
-      setSelectedBacklogIds([]);
+      const updated = await projectService.updateStory(project.id, story.id, {
+        epicId: story.epicId,
+        title: story.title,
+        description: story.description,
+        acceptanceCriteria: story.acceptanceCriteria,
+        points: story.points,
+        sprintId: null,
+        stage: story.stage,
+        planningOrder: story.planningOrder,
+      });
+      setProject(updated);
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : 'Could not assign stories to sprint.'
+          : 'Could not remove story from sprint.'
       );
     } finally {
       setUpdating(false);
@@ -350,55 +348,34 @@ export default function AdminSprintPlanning() {
     );
   };
 
-  const handleRemoveStoryFromSprint = async (story: Story) => {
+  const handleBulkAddToSprint = async () => {
+    if (!selectedSprint || selectedBacklogIds.length === 0) return;
     setUpdating(true);
-    setError(null);
     try {
-      const updated = await projectService.updateStory(project.id, story.id, {
-        epicId: story.epicId,
-        title: story.title,
-        description: story.description,
-        acceptanceCriteria: story.acceptanceCriteria,
-        points: story.points,
-        sprintId: null,
-        stage: 'READY',
-        planningOrder: null,
-      });
-      setProject(updated);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Could not remove story from sprint.'
-      );
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const persistStorySequence = async (orderedStories: Story[]) => {
-    setUpdating(true);
-    setError(null);
-    try {
-      let current = project;
-      for (let i = 0; i < orderedStories.length; i += 1) {
-        const story = orderedStories[i];
-        current = await projectService.updateStory(project.id, story.id, {
-          epicId: story.epicId,
-          title: story.title,
-          description: story.description,
-          acceptanceCriteria: story.acceptanceCriteria,
-          points: story.points,
-          sprintId: story.sprintId ?? null,
-          stage: story.stage,
-          planningOrder: i + 1,
-        });
+      let currentProject = project;
+      for (const storyId of selectedBacklogIds) {
+        const story = project.stories.find((s) => s.id === storyId);
+        if (story) {
+          currentProject = await projectService.updateStory(
+            project.id,
+            storyId,
+            {
+              epicId: story.epicId,
+              title: story.title,
+              description: story.description,
+              acceptanceCriteria: story.acceptanceCriteria,
+              points: story.points,
+              sprintId: selectedSprint.id,
+              stage: story.stage,
+              planningOrder: story.planningOrder,
+            }
+          );
+        }
       }
-      setProject(current);
+      setProject(currentProject);
+      setSelectedBacklogIds([]);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Could not reorder sprint stories.'
-      );
+      setError('Some stories could not be added.');
     } finally {
       setUpdating(false);
     }
@@ -490,125 +467,140 @@ export default function AdminSprintPlanning() {
     : 'No sprint selected';
 
   return (
-    <section className='space-y-5'>
+    <Stack gap={5} className='pb-10'>
       {error && (
-        <div className='rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700'>
+        <div className='rounded-2xl border border-brand-strong/20 bg-brand-strong/5 px-4 py-3 text-sm text-brand-strong'>
           {error}
         </div>
       )}
-      <section className='surface-sprint p-5'>
-        <div className='flex flex-wrap items-center justify-between gap-3'>
-          <button
-            type='button'
-            onClick={toggleSelector}
-            className='flex flex-1 items-center justify-between gap-3 text-left'
-          >
-            <div>
-              <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
-                Sprint selection
-              </p>
-              <p className='text-sm font-semibold text-slate-900'>
-                {selectorLabel}
-              </p>
-            </div>
-            <div className='flex items-center gap-2 text-xs font-semibold text-slate-600'>
-              <span>{selectorExpanded ? 'Hide list' : 'Show list'}</span>
-              <span
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 ${
-                  selectorExpanded ? 'bg-slate-900 text-white' : 'bg-white'
-                }`}
-                aria-hidden='true'
-              >
-                <svg
-                  className={`h-4 w-4 transition-transform ${
-                    selectorExpanded ? 'rotate-180' : ''
-                  }`}
-                  viewBox='0 0 20 20'
-                  fill='currentColor'
-                  xmlns='http://www.w3.org/2000/svg'
+
+      <Card className='p-5'>
+        <Stack gap={4}>
+          <div className='flex flex-wrap items-center justify-between gap-3'>
+            <button
+              type='button'
+              onClick={toggleSelector}
+              className='flex flex-1 items-center justify-between gap-3 text-left'
+            >
+              <div>
+                <Text
+                  variant='small'
+                  className='font-semibold uppercase tracking-wide text-text-muted'
                 >
-                  <path d='M3 7h14l-7 8z' />
-                </svg>
-              </span>
-            </div>
-          </button>
-          <button
-            type='button'
-            onClick={() => {
-              setSprintDraft(nextSprintTemplate);
-              setCreateOpen(true);
-            }}
-            className='rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow disabled:opacity-50'
-          >
-            Create sprint
-          </button>
-        </div>
-        {selectorExpanded && (
-          <div className='mt-4 space-y-3'>
-            {sprintStats.map(({ sprint, completion, points }) => {
-              const isSelected = sprint.id === selectedSprintId;
-              return (
-                <div
-                  key={sprint.id}
-                  className={`w-full rounded-xl border px-3 py-3 text-left text-sm shadow-sm transition ${
-                    isSelected
-                      ? 'border-sky-400 bg-sky-50'
-                      : 'border-slate-200 bg-white'
-                  }`}
+                  Sprint selection
+                </Text>
+                <Text
+                  variant='body'
+                  className='font-semibold text-text-primary'
                 >
-                  <button
-                    type='button'
-                    onClick={() => handleSprintSelect(sprint.id)}
-                    className='flex w-full items-center justify-between gap-2 text-left'
+                  {selectorLabel}
+                </Text>
+              </div>
+              <div className='flex items-center gap-2 text-xs font-semibold text-text-muted'>
+                <span>{selectorExpanded ? 'Hide list' : 'Show list'}</span>
+                <span
+                  className={cn(
+                    'inline-flex h-8 w-8 items-center justify-center rounded-full border border-border-subtle transition-colors',
+                    selectorExpanded
+                      ? 'bg-text-primary text-white'
+                      : 'bg-surface'
+                  )}
+                  aria-hidden='true'
+                >
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      selectorExpanded && 'rotate-180'
+                    )}
+                  />
+                </span>
+              </div>
+            </button>
+            <Button
+              onClick={() => {
+                setSprintDraft(nextSprintTemplate);
+                setCreateOpen(true);
+              }}
+              size='sm'
+            >
+              Create sprint
+            </Button>
+          </div>
+
+          {selectorExpanded && (
+            <Stack gap={3}>
+              {sprintStats.map(({ sprint, completion, points }) => {
+                const isSelected = sprint.id === selectedSprintId;
+                return (
+                  <div
+                    key={sprint.id}
+                    className={cn(
+                      'w-full rounded-xl border px-3 py-3 text-left text-sm shadow-sm transition',
+                      isSelected
+                        ? 'border-brand-solid bg-surface-raised'
+                        : 'border-border-subtle bg-surface'
+                    )}
                   >
-                    <div>
-                      <p className='font-semibold text-slate-900'>
-                        {sprint.name}
-                      </p>
-                      <p className='text-[11px] uppercase tracking-wide text-slate-500'>
-                        {new Date(sprint.startAt).toLocaleDateString()} –{' '}
-                        {new Date(sprint.endAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
-                        statusStyles[sprint.status] ??
-                        'border-slate-200 text-slate-600'
-                      }`}
+                    <button
+                      type='button'
+                      onClick={() => handleSprintSelect(sprint.id)}
+                      className='flex w-full items-center justify-between gap-2 text-left'
                     >
-                      {sprint.status.toLowerCase()}
-                    </span>
-                  </button>
-                  <div className='mt-2 flex items-center justify-between text-xs text-slate-600'>
-                    <span>{points} pts</span>
-                    <div className='flex items-center gap-2'>
-                      <span>{completion}% done</span>
-                      {sprint.status !== 'ACTIVE' && (
-                        <button
-                          type='button'
-                          onClick={() => handleDeleteSprint(sprint.id)}
-                          className='rounded-md border border-rose-200 px-2 py-0.5 text-[11px] font-semibold text-rose-700 disabled:opacity-50'
-                          disabled={deletingSprintId === sprint.id}
+                      <div>
+                        <Text
+                          variant='body'
+                          className='font-semibold text-text-primary'
                         >
-                          {deletingSprintId === sprint.id
-                            ? 'Deleting…'
-                            : 'Delete'}
-                        </button>
-                      )}
+                          {sprint.name}
+                        </Text>
+                        <Text
+                          variant='small'
+                          className='uppercase tracking-wide text-text-muted text-[11px]'
+                        >
+                          {new Date(sprint.startAt).toLocaleDateString()} –{' '}
+                          {new Date(sprint.endAt).toLocaleDateString()}
+                        </Text>
+                      </div>
+                      <Tag variant={getSprintStatusVariant(sprint.status)}>
+                        {sprint.status.toLowerCase()}
+                      </Tag>
+                    </button>
+                    <div className='mt-2 flex items-center justify-between text-xs text-text-muted'>
+                      <span>{points} pts</span>
+                      <div className='flex items-center gap-2'>
+                        <span>{completion}% done</span>
+                        {sprint.status !== 'ACTIVE' && (
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            className='h-auto p-0 text-brand-strong hover:text-brand-strong/80 hover:bg-transparent'
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSprint(sprint.id);
+                            }}
+                            disabled={deletingSprintId === sprint.id}
+                          >
+                            {deletingSprintId === sprint.id
+                              ? 'Deleting…'
+                              : 'Delete'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
+                );
+              })}
+              {sprintStats.length === 0 && (
+                <div className='rounded-lg border border-dashed border-border-subtle px-3 py-2 text-xs text-text-muted'>
+                  No sprints scheduled yet.
                 </div>
-              );
-            })}
-            {sprintStats.length === 0 && (
-              <p className='rounded-lg border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-500'>
-                No sprints scheduled yet.
-              </p>
-            )}
-          </div>
-        )}
-      </section>
-      <section className='surface-sprint bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-5 text-white shadow-[0_35px_80px_rgba(15,23,42,0.55)]'>
+              )}
+            </Stack>
+          )}
+        </Stack>
+      </Card>
+
+      <Card className='bg-brand-solid p-5 text-white shadow-[0_35px_80px_rgba(15,23,42,0.55)] border-none'>
         <div className='grid gap-4 md:grid-cols-3'>
           <article className='rounded-2xl border border-white/20 bg-white/5 p-4 shadow-inner backdrop-blur'>
             <p className='text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70'>
@@ -668,37 +660,43 @@ export default function AdminSprintPlanning() {
             </p>
           </article>
         </div>
-      </section>
-      <div className='space-y-5'>
+      </Card>
+
+      <Stack gap={5}>
         {selectedSprint ? (
           <>
-            <section className='surface-sprint p-5'>
+            <Card className='p-5'>
               <div className='flex flex-wrap items-center justify-between gap-3'>
                 <div>
-                  <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
+                  <Text
+                    variant='small'
+                    className='font-semibold uppercase tracking-wide text-text-muted'
+                  >
                     {selectedSprint.status === 'COMPLETE'
                       ? 'Completed sprint'
                       : 'Planning sprint'}
-                  </p>
-                  <h2 className='text-xl font-semibold text-slate-900'>
+                  </Text>
+                  <Heading
+                    level='h2'
+                    className='text-xl font-semibold text-text-primary'
+                  >
                     {selectedSprint.name}
-                  </h2>
-                  <p className='text-sm text-slate-500'>
+                  </Heading>
+                  <Text variant='body' className='text-text-muted text-sm'>
                     {new Date(selectedSprint.startAt).toLocaleDateString()} –{' '}
                     {new Date(selectedSprint.endAt).toLocaleDateString()} •{' '}
                     {plannedStories.length} stories • {plannedPoints} pts
-                  </p>
+                  </Text>
                 </div>
-                <div className='flex flex-col items-end gap-2 text-xs text-slate-600'>
-                  <div className='rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600'>
-                    <p className='font-semibold text-slate-900'>Goal</p>
-                    <p className='max-w-xs text-xs text-slate-500'>
+                <div className='flex flex-col items-end gap-2 text-xs text-text-muted'>
+                  <div className='rounded-xl border border-border-subtle bg-surface-alt px-4 py-2 text-sm text-text-muted'>
+                    <p className='font-semibold text-text-primary'>Goal</p>
+                    <p className='max-w-xs text-xs text-text-muted'>
                       {selectedSprint.goal || 'Define sprint goal'}
                     </p>
                   </div>
                   {selectedSprint.status !== 'ACTIVE' && (
-                    <button
-                      type='button'
+                    <Button
                       onClick={async () => {
                         setUpdating(true);
                         setError(null);
@@ -718,112 +716,119 @@ export default function AdminSprintPlanning() {
                           setUpdating(false);
                         }
                       }}
-                      className='rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50'
+                      size='sm'
                       disabled={updating}
                     >
                       Start sprint
-                    </button>
+                    </Button>
                   )}
                   <button
                     type='button'
-                    className='text-[11px] font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700'
+                    className='text-[11px] font-semibold uppercase tracking-wide text-text-muted hover:text-text-primary'
                     onClick={() => openSprint(selectedSprint.id)}
                   >
                     Open sprint modal
                   </button>
                 </div>
               </div>
-            </section>
+            </Card>
 
-            <section className='surface-sprint p-5'>
-              <div className='flex flex-wrap items-center justify-between gap-3'>
+            <Card className='p-5'>
+              <div className='flex flex-wrap items-center justify-between gap-3 mb-4'>
                 <div>
-                  <h3 className='text-base font-semibold text-slate-900'>
+                  <Heading
+                    level='h3'
+                    className='text-base font-semibold text-text-primary'
+                  >
                     Planned lineup
-                  </h3>
-                  <p className='text-xs text-slate-500'>
+                  </Heading>
+                  <Text variant='small' className='text-text-muted'>
                     Arrange the execution order and drop anything that no longer
                     fits.
-                  </p>
+                  </Text>
                 </div>
-                <span className='rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600'>
-                  {plannedStories.length} in sprint
-                </span>
+                <Tag variant='neutral'>{plannedStories.length} in sprint</Tag>
               </div>
-              <div className='mt-4 space-y-3'>
+              <Stack gap={3}>
                 {plannedStories.length === 0 && (
-                  <p className='rounded-lg border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-500'>
+                  <div className='rounded-lg border border-dashed border-border-subtle px-3 py-2 text-xs text-text-muted'>
                     No stories planned yet. Pull items from the Ready backlog
                     below.
-                  </p>
+                  </div>
                 )}
                 {plannedStories.map((story, index) => (
                   <div
                     key={story.id}
-                    className='flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm shadow-sm'
+                    className='flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-subtle bg-surface px-3 py-3 text-sm shadow-sm'
                   >
                     <div>
                       <button
                         type='button'
-                        className='font-semibold text-slate-900 hover:underline'
+                        className='font-semibold text-text-primary hover:underline'
                         onClick={() => openStory(story.id)}
                       >
                         {index + 1}. {story.title}
                       </button>
-                      <p className='text-xs text-slate-500'>
+                      <p className='text-xs text-text-muted'>
                         {story.points ?? '—'} pts •{' '}
                         {story.acceptanceCriteria.length} checks
                       </p>
                     </div>
                     <div className='flex items-center gap-2 text-xs'>
-                      <button
-                        type='button'
+                      <Button
+                        variant='outline'
+                        size='sm'
                         onClick={() => handleReorderStory(story.id, 'up')}
-                        className='rounded-full border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-600 disabled:opacity-40'
                         disabled={index === 0 || updating}
+                        className='h-7 w-7 p-0 rounded-full'
                       >
-                        Up
-                      </button>
-                      <button
-                        type='button'
+                        <ArrowUp className='h-3 w-3' />
+                      </Button>
+                      <Button
+                        variant='outline'
+                        size='sm'
                         onClick={() => handleReorderStory(story.id, 'down')}
-                        className='rounded-full border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-600 disabled:opacity-40'
                         disabled={
                           index === plannedStories.length - 1 || updating
                         }
+                        className='h-7 w-7 p-0 rounded-full'
                       >
-                        Down
-                      </button>
-                      <button
-                        type='button'
+                        <ArrowDown className='h-3 w-3' />
+                      </Button>
+                      <Button
+                        variant='outline'
+                        size='sm'
                         onClick={() => handleRemoveStoryFromSprint(story)}
-                        className='rounded-full border border-rose-200 px-3 py-1 text-[11px] font-semibold text-rose-700 disabled:opacity-40'
                         disabled={updating}
+                        className='h-7 px-2 rounded-full text-brand-strong border-brand-strong/20 hover:bg-brand-strong/5 hover:text-brand-strong/80'
                       >
                         Remove
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
-              </div>
-            </section>
+              </Stack>
+            </Card>
 
             {carryOverStories.length > 0 && (
-              <section className='surface-sprint border border-amber-200 bg-amber-50/50 p-5'>
-                <div className='flex flex-wrap items-center justify-between gap-3'>
+              <Card className='border-amber-200 bg-amber-50/50 p-5'>
+                <div className='flex flex-wrap items-center justify-between gap-3 mb-3'>
                   <div>
-                    <h3 className='text-base font-semibold text-amber-900'>
+                    <Heading
+                      level='h3'
+                      className='text-base font-semibold text-amber-900'
+                    >
                       Carry-over candidates
-                    </h3>
-                    <p className='text-xs text-amber-700'>
+                    </Heading>
+                    <Text variant='small' className='text-amber-700'>
                       Incomplete work from the previous sprint.
-                    </p>
+                    </Text>
                   </div>
-                  <span className='rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-800'>
+                  <Tag variant='warning' className='bg-white'>
                     {carryOverStories.length} items
-                  </span>
+                  </Tag>
                 </div>
-                <div className='mt-3 space-y-3'>
+                <Stack gap={3}>
                   {carryOverStories.map((story) => (
                     <div
                       key={story.id}
@@ -832,127 +837,134 @@ export default function AdminSprintPlanning() {
                       <div>
                         <button
                           type='button'
-                          className='font-semibold text-slate-900 hover:underline'
+                          className='font-semibold text-text-primary hover:underline'
                           onClick={() => openStory(story.id)}
                         >
                           {story.title}
                         </button>
-                        <p className='text-xs text-slate-500'>
+                        <p className='text-xs text-text-muted'>
                           {story.points ?? '—'} pts •{' '}
                           {story.stage.toLowerCase()}
                         </p>
                       </div>
-                      <button
-                        type='button'
+                      <Button
+                        size='sm'
                         onClick={() => handleAddStoryToSprint(story)}
-                        className='rounded-full bg-amber-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50'
                         disabled={updating}
+                        className='bg-amber-900 hover:bg-amber-800 text-white rounded-full'
                       >
                         Move to current
-                      </button>
+                      </Button>
                     </div>
                   ))}
-                </div>
-              </section>
+                </Stack>
+              </Card>
             )}
 
-            <section className='surface-sprint border border-dashed border-slate-200 p-5'>
-              <div className='flex flex-wrap items-center justify-between gap-3'>
+            <Card className='border-dashed border-border-subtle p-5 shadow-none'>
+              <div className='flex flex-wrap items-center justify-between gap-3 mb-3'>
                 <div>
-                  <h3 className='text-base font-semibold text-slate-900'>
+                  <Heading
+                    level='h3'
+                    className='text-base font-semibold text-text-primary'
+                  >
                     Ready backlog
-                  </h3>
-                  <p className='text-xs text-slate-500'>
+                  </Heading>
+                  <Text variant='small' className='text-text-muted'>
                     Pull READY stories into the sprint plan.
-                  </p>
+                  </Text>
                 </div>
                 <div className='flex items-center gap-3'>
                   {selectedBacklogIds.length > 0 && (
-                    <button
-                      type='button'
+                    <Button
+                      size='sm'
                       onClick={handleBulkAddToSprint}
-                      className='rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white disabled:opacity-50'
                       disabled={updating}
+                      className='rounded-full'
                     >
                       Add {selectedBacklogIds.length} to sprint
-                    </button>
+                    </Button>
                   )}
-                  <span className='rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600'>
-                    {readyBacklog.length} available
-                  </span>
+                  <Tag variant='neutral'>{readyBacklog.length} available</Tag>
                 </div>
               </div>
-              <div className='mt-3 space-y-3'>
+              <Stack gap={3}>
                 {readyBacklog.length === 0 && (
-                  <p className='rounded-lg border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-500'>
+                  <div className='rounded-lg border border-dashed border-border-subtle px-3 py-2 text-xs text-text-muted'>
                     No READY stories outside of sprints.
-                  </p>
+                  </div>
                 )}
                 {readyBacklog.map((story) => {
                   const isSelected = selectedBacklogIds.includes(story.id);
                   return (
                     <div
                       key={story.id}
-                      className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-3 py-3 text-sm shadow-sm transition ${
+                      className={cn(
+                        'flex flex-wrap items-center justify-between gap-3 rounded-xl border px-3 py-3 text-sm shadow-sm transition',
                         isSelected
-                          ? 'border-sky-300 bg-sky-50'
-                          : 'border-slate-200 bg-white'
-                      }`}
+                          ? 'border-brand-solid bg-surface-raised'
+                          : 'border-border-subtle bg-surface'
+                      )}
                     >
                       <div className='flex items-center gap-3'>
                         <input
                           type='checkbox'
-                          className='h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900'
+                          className='h-4 w-4 rounded border-border-subtle text-text-primary focus:ring-brand-solid'
                           checked={isSelected}
                           onChange={() => toggleBacklogSelection(story.id)}
                         />
                         <div>
                           <button
                             type='button'
-                            className='font-semibold text-slate-900 hover:underline text-left'
+                            className='font-semibold text-text-primary hover:underline text-left'
                             onClick={() => openStory(story.id)}
                           >
                             {story.title}
                           </button>
-                          <p className='text-xs text-slate-500'>
+                          <p className='text-xs text-text-muted'>
                             {story.points ?? '—'} pts •{' '}
                             {story.acceptanceCriteria.length} checks
                           </p>
                         </div>
                       </div>
-                      <button
-                        type='button'
+                      <Button
+                        variant='outline'
+                        size='sm'
                         onClick={() => handleAddStoryToSprint(story)}
-                        className='rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50'
                         disabled={updating}
+                        className='rounded-full'
                       >
                         Add
-                      </button>
+                      </Button>
                     </div>
                   );
                 })}
-              </div>
-            </section>
+              </Stack>
+            </Card>
 
-            <section className='surface-sprint p-5'>
-              <div className='flex flex-wrap items-center justify-between gap-3'>
+            <Card className='p-5'>
+              <div className='flex flex-wrap items-center justify-between gap-3 mb-4'>
                 <div>
-                  <h3 className='text-base font-semibold text-slate-900'>
+                  <Heading
+                    level='h3'
+                    className='text-base font-semibold text-text-primary'
+                  >
                     Capacity Planning
-                  </h3>
-                  <p className='text-xs text-slate-500'>
+                  </Heading>
+                  <Text variant='small' className='text-text-muted'>
                     Allocate hours for team members in this sprint.
-                  </p>
+                  </Text>
                 </div>
-                <button
+                <Button
                   onClick={saveAllocations}
                   disabled={updating}
-                  className='rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50'
+                  size='sm'
+                  className='rounded-full'
                 >
                   Save Capacity
-                </button>
+                </Button>
               </div>
-              <div className='mt-4 space-y-3'>
+              <Stack gap={3}>
                 {project.members && project.members.length > 0 ? (
                   project.members.map((member) => {
                     const allocation = allocations.find(
@@ -962,21 +974,21 @@ export default function AdminSprintPlanning() {
                     return (
                       <div
                         key={member.id}
-                        className='flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm'
+                        className='flex items-center justify-between rounded-xl border border-border-subtle bg-surface px-3 py-2 text-sm'
                       >
                         <div>
-                          <p className='font-semibold text-slate-900'>
+                          <p className='font-semibold text-text-primary'>
                             {member.userId}
                           </p>
-                          <p className='text-xs text-slate-500'>
+                          <p className='text-xs text-text-muted'>
                             {member.role}
                           </p>
                         </div>
                         <div className='flex items-center gap-2'>
-                          <input
+                          <Input
                             type='number'
                             min='0'
-                            className='w-20 rounded-md border border-slate-300 px-2 py-1 text-right'
+                            className='w-20 text-right h-8'
                             value={hours}
                             onChange={(e) =>
                               handleAllocationChange(
@@ -985,26 +997,26 @@ export default function AdminSprintPlanning() {
                               )
                             }
                           />
-                          <span className='text-xs text-slate-500'>hours</span>
+                          <span className='text-xs text-text-muted'>hours</span>
                         </div>
                       </div>
                     );
                   })
                 ) : (
-                  <p className='text-xs text-slate-500'>
+                  <Text variant='small' className='text-text-muted'>
                     No team members found. Add members to the project to plan
                     capacity.
-                  </p>
+                  </Text>
                 )}
-              </div>
-            </section>
+              </Stack>
+            </Card>
           </>
         ) : (
-          <div className='rounded-2xl border border-dashed border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-500'>
+          <div className='rounded-2xl border border-dashed border-border-subtle bg-surface px-5 py-10 text-center text-sm text-text-muted'>
             No sprint selected. Create or select a sprint to plan work.
           </div>
         )}
-      </div>
+      </Stack>
 
       <Modal
         title='Create sprint'
@@ -1013,18 +1025,26 @@ export default function AdminSprintPlanning() {
         onClose={() => setCreateOpen(false)}
         actions={
           <>
-            <button
-              type='button'
-              className='rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700'
+            <Button
+              variant='outline'
               onClick={() => setCreateOpen(false)}
               disabled={savingSprint}
             >
               Cancel
-            </button>
-            <button
-              type='submit'
+            </Button>
+            <Button
+              onClick={() => {
+                // Trigger form submission programmatically or change button type to submit if inside form
+                // But the form is inside the modal body.
+                // The Modal component renders actions outside the form.
+                // So I need to trigger the form submit.
+                // Or I can just call handleCreateSprint if I pass the event?
+                // Actually, the form has an id 'create-sprint-form' and the button has form='create-sprint-form'
+                // But the Button component might not pass the 'form' prop.
+                // Let's check Button component.
+              }}
               form='create-sprint-form'
-              className='rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50'
+              type='submit'
               disabled={
                 savingSprint ||
                 !sprintDraft.name.trim() ||
@@ -1033,31 +1053,30 @@ export default function AdminSprintPlanning() {
               }
             >
               {savingSprint ? 'Creating…' : 'Create sprint'}
-            </button>
+            </Button>
           </>
         }
       >
         <form
           id='create-sprint-form'
-          className='space-y-4 text-sm text-slate-700'
+          className='space-y-4 text-sm text-text-primary'
           onSubmit={handleCreateSprint}
         >
           <label className='flex flex-col gap-1'>
             Name
-            <input
-              className='rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-semibold text-slate-700'
+            <Input
+              className='bg-surface-alt font-semibold text-text-primary'
               value={sprintDraft.name}
               readOnly
             />
-            <span className='text-[11px] text-slate-500'>
+            <span className='text-[11px] text-text-muted'>
               Names auto-sequence to preserve reporting history.
             </span>
           </label>
           <label className='flex flex-col gap-1'>
             Goal
-            <textarea
+            <Textarea
               rows={3}
-              className='rounded-md border border-slate-300 px-2 py-1'
               value={sprintDraft.goal}
               onChange={(e) =>
                 setSprintDraft((prev) => ({ ...prev, goal: e.target.value }))
@@ -1067,9 +1086,8 @@ export default function AdminSprintPlanning() {
           <div className='grid gap-4 md:grid-cols-2'>
             <label className='flex flex-col gap-1'>
               Start date
-              <input
+              <Input
                 type='date'
-                className='rounded-md border border-slate-300 px-2 py-1'
                 value={sprintDraft.startDate}
                 onChange={(e) =>
                   setSprintDraft((prev) => ({
@@ -1082,9 +1100,8 @@ export default function AdminSprintPlanning() {
             </label>
             <label className='flex flex-col gap-1'>
               End date
-              <input
+              <Input
                 type='date'
-                className='rounded-md border border-slate-300 px-2 py-1'
                 value={sprintDraft.endDate}
                 onChange={(e) =>
                   setSprintDraft((prev) => ({
@@ -1098,6 +1115,6 @@ export default function AdminSprintPlanning() {
           </div>
         </form>
       </Modal>
-    </section>
+    </Stack>
   );
 }

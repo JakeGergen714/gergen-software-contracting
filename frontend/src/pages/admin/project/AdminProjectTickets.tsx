@@ -8,12 +8,7 @@ import {
   TicketSeverity,
   CreateTicketInput,
 } from '../../../types/domain';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from '../../../components/ui/card';
+import { Card, CardHeader, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Textarea } from '../../../components/ui/textarea';
@@ -32,8 +27,10 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '../../../components/ui/dialog';
-import { Badge } from '../../../components/ui/badge';
+import { Tag } from '../../../components/ui/tag';
 import { Loader2, Plus, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Stack } from '../../../components/ui/container';
+import { Heading, Text } from '../../../components/ui/typography';
 
 export default function AdminProjectTickets() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -90,50 +87,57 @@ export default function AdminProjectTickets() {
     }
   };
 
-  const getSeverityColor = (severity: TicketSeverity) => {
+  const getSeverityVariant = (
+    severity: TicketSeverity
+  ): 'error' | 'warning' | 'success' | 'neutral' => {
     switch (severity) {
       case TicketSeverity.CRITICAL:
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'error';
       case TicketSeverity.HIGH:
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'warning';
       case TicketSeverity.MEDIUM:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'warning';
       case TicketSeverity.LOW:
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'success';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'neutral';
     }
   };
 
   const getStatusIcon = (status: TicketStatus) => {
     switch (status) {
       case TicketStatusValues.OPEN:
-        return <AlertCircle className='h-4 w-4 text-blue-500' />;
+        return <AlertCircle className='h-4 w-4 text-brand-solid' />;
       case TicketStatusValues.IN_PROGRESS:
-        return <Clock className='h-4 w-4 text-yellow-500' />;
+        return <Clock className='h-4 w-4 text-amber-600' />;
       case TicketStatusValues.RESOLVED:
-        return <CheckCircle2 className='h-4 w-4 text-green-500' />;
+        return <CheckCircle2 className='h-4 w-4 text-brand-solid' />;
       case TicketStatusValues.CLOSED:
-        return <CheckCircle2 className='h-4 w-4 text-gray-500' />;
+        return <CheckCircle2 className='h-4 w-4 text-text-muted' />;
     }
   };
 
   if (loading) {
     return (
       <div className='flex justify-center items-center h-64'>
-        <Loader2 className='h-8 w-8 animate-spin text-primary' />
+        <Loader2 className='h-8 w-8 animate-spin text-brand-solid' />
       </div>
     );
   }
 
   return (
-    <div className='space-y-6'>
+    <Stack gap={6}>
       <div className='flex justify-between items-center'>
         <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Support Tickets</h2>
-          <p className='text-muted-foreground'>
+          <Heading
+            level='h2'
+            className='text-2xl font-bold tracking-tight text-text-primary'
+          >
+            Support Tickets
+          </Heading>
+          <Text variant='muted'>
             Manage support requests and issues for this project.
-          </p>
+          </Text>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -146,9 +150,9 @@ export default function AdminProjectTickets() {
             <DialogHeader>
               <DialogTitle>Create New Ticket</DialogTitle>
             </DialogHeader>
-            <div className='space-y-4 py-4'>
+            <Stack gap={4} className='py-4'>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Title</label>
+                <Text variant='label'>Title</Text>
                 <Input
                   value={newTicket.title}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -158,7 +162,7 @@ export default function AdminProjectTickets() {
                 />
               </div>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Severity</label>
+                <Text variant='label'>Severity</Text>
                 <Select
                   value={newTicket.severity}
                   onValueChange={(value: string) =>
@@ -184,7 +188,7 @@ export default function AdminProjectTickets() {
                 </Select>
               </div>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Description</label>
+                <Text variant='label'>Description</Text>
                 <Textarea
                   value={newTicket.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -194,7 +198,7 @@ export default function AdminProjectTickets() {
                   rows={4}
                 />
               </div>
-            </div>
+            </Stack>
             <DialogFooter>
               <Button variant='outline' onClick={() => setIsCreateOpen(false)}>
                 Cancel
@@ -205,29 +209,31 @@ export default function AdminProjectTickets() {
         </Dialog>
       </div>
 
-      <div className='grid gap-4'>
+      <Stack gap={4}>
         {tickets.map((ticket) => (
-          <Card key={ticket.id}>
+          <Card key={ticket.id} className='bg-surface border-border-subtle'>
             <CardHeader className='pb-2'>
               <div className='flex justify-between items-start'>
                 <div className='space-y-1'>
-                  <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                    {ticket.title}
-                    <Badge
-                      variant='outline'
-                      className={getSeverityColor(ticket.severity)}
+                  <div className='flex items-center gap-2'>
+                    <Heading
+                      level='h3'
+                      className='text-lg font-semibold text-text-primary'
                     >
+                      {ticket.title}
+                    </Heading>
+                    <Tag variant={getSeverityVariant(ticket.severity)}>
                       {ticket.severity}
-                    </Badge>
-                  </CardTitle>
-                  <div className='text-sm text-muted-foreground flex items-center gap-2'>
-                    <span>
+                    </Tag>
+                  </div>
+                  <div className='text-sm text-text-muted flex items-center gap-2'>
+                    <Text variant='caption'>
                       Created {new Date(ticket.createdAt).toLocaleDateString()}
-                    </span>
-                    <span>•</span>
+                    </Text>
+                    <Text variant='caption'>•</Text>
                     <span className='flex items-center gap-1'>
                       {getStatusIcon(ticket.status)}
-                      {ticket.status}
+                      <Text variant='caption'>{ticket.status}</Text>
                     </span>
                   </div>
                 </div>
@@ -258,18 +264,23 @@ export default function AdminProjectTickets() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className='text-sm whitespace-pre-wrap'>
+              <Text
+                variant='body'
+                className='whitespace-pre-wrap text-text-primary'
+              >
                 {ticket.description}
-              </p>
+              </Text>
             </CardContent>
           </Card>
         ))}
         {tickets.length === 0 && (
-          <div className='text-center py-12 text-muted-foreground bg-muted/10 rounded-lg border border-dashed'>
-            <p>No tickets found. Create one to get started.</p>
+          <div className='text-center py-12 text-text-muted bg-surface-alt rounded-lg border border-dashed border-border-subtle'>
+            <Text variant='muted'>
+              No tickets found. Create one to get started.
+            </Text>
           </div>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

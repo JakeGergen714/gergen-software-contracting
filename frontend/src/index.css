@@ -34,10 +34,10 @@
   --text-muted: #5d6383;
   --text-faint: #9da4bf;
 
-  --brand: #1895ff;
-  --brand-strong: #085caf;
-  --brand-soft: #d0edff;
-  --brand-gradient: linear-gradient(135deg, #1895ff, #9b8bff);
+  --brand: #ff6233;
+  --brand-strong: #c72e0b;
+  --brand-soft: #ffefe8;
+  --brand-gradient: linear-gradient(135deg, #ff6233, #f04113);
 
   --success: #12b97a;
   --warning: #ff9724;
@@ -83,18 +83,14 @@ body {
   background-color: var(--surface-alt);
   background-image: radial-gradient(
       circle at top left,
-      rgba(24, 149, 255, 0.08),
+      rgba(255, 98, 51, 0.08),
       transparent 45%
     ),
-    radial-gradient(
-      circle at 80% 0%,
-      rgba(155, 139, 255, 0.12),
-      transparent 40%
-    ),
+    radial-gradient(circle at 80% 0%, rgba(240, 65, 19, 0.12), transparent 40%),
     linear-gradient(
       180deg,
       rgba(255, 255, 255, 0.85),
-      rgba(245, 247, 251, 0.95)
+      rgba(250, 250, 249, 0.95)
     );
   color: var(--text-primary);
 }
@@ -262,7 +258,7 @@ body {
     inset: 0;
     background: radial-gradient(
       circle at 80% 0%,
-      rgba(24, 149, 255, 0.18),
+      rgba(255, 98, 51, 0.18),
       transparent 55%
     );
     opacity: 0;

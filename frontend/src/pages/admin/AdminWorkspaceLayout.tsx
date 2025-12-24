@@ -7,7 +7,7 @@ import {
 
 const navItems: WorkspaceNavItem[] = [
   { label: 'Overview', to: '/admin' },
-  { label: 'Portfolio Metrics', to: '/admin/portfolio' },
+  { label: 'Portfolio', to: '/admin/portfolio' },
   { label: 'Settings', to: '/admin/settings' },
 ];
 

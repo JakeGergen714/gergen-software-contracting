@@ -45,7 +45,7 @@ export function SiteLayout() {
                 <NavLink to='/login' className={linkClass}>
                   Login
                 </NavLink>
-                <Link to='/signup' className='btn-primary text-xs px-5 py-2'>
+                <Link to='/start' className='btn-primary text-xs px-5 py-2'>
                   Start now
                 </Link>
               </div>

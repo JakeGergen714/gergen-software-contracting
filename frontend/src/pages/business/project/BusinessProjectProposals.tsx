@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useServices } from '../../../context/ServiceContext';
 import { Proposal } from '../../../types/domain';
+import { Card } from '../../../components/ui/card';
+import { Stack } from '../../../components/ui/container';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
+import { Tag } from '../../../components/ui/tag';
 
 export default function BusinessProjectProposals() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -51,81 +56,80 @@ export default function BusinessProjectProposals() {
   const visibleProposals = list.filter((p) => p.status !== 'DRAFT');
 
   return (
-    <div className='space-y-6'>
-      <div className='flex justify-between items-center no-print'>
-        <h2 className='text-xl font-semibold text-slate-900'>
-          Proposals & Agreements
-        </h2>
-        <button
-          onClick={() => window.print()}
-          className='text-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 rounded-full'
-        >
+    <Stack gap={6}>
+      <Stack
+        direction='row'
+        justify='between'
+        align='center'
+        className='no-print'
+      >
+        <Heading level='h2'>Proposals & Agreements</Heading>
+        <Button variant='ghost' onClick={() => window.print()}>
           Print
-        </button>
-      </div>
+        </Button>
+      </Stack>
 
-      <div className='space-y-4'>
+      <Stack gap={4}>
         {visibleProposals.map((p) => (
-          <div
-            key={p.id}
-            className='surface-card p-6 rounded-3xl border border-slate-100 hover:shadow-sm transition-shadow'
-          >
-            <div className='flex justify-between items-start mb-4'>
-              <div>
-                <div className='flex items-center gap-2'>
-                  <span className='font-semibold text-slate-900'>
-                    Version {p.version}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      p.status === 'APPROVED'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : p.status === 'REJECTED'
-                        ? 'bg-rose-100 text-rose-700'
-                        : p.status === 'SUPERSEDED'
-                        ? 'bg-slate-100 text-slate-500'
-                        : 'bg-amber-100 text-amber-700'
-                    }`}
-                  >
-                    {p.status}
-                  </span>
-                </div>
-                <div className='text-xs text-slate-500 mt-1'>
-                  Created {new Date(p.createdAt).toLocaleDateString()}
-                </div>
+          <Card key={p.id} className='hover:shadow-sm transition-shadow'>
+            <Stack gap={4}>
+              <Stack direction='row' justify='between' align='start'>
+                <Stack gap={1}>
+                  <Stack direction='row' align='center' gap={2}>
+                    <Text weight='semibold'>Version {p.version}</Text>
+                    <Tag
+                      variant={
+                        p.status === 'APPROVED'
+                          ? 'success'
+                          : p.status === 'REJECTED'
+                          ? 'error'
+                          : p.status === 'SUPERSEDED'
+                          ? 'neutral'
+                          : 'warning'
+                      }
+                    >
+                      {p.status}
+                    </Tag>
+                  </Stack>
+                  <Text variant='caption' className='text-slate-500'>
+                    Created {new Date(p.createdAt).toLocaleDateString()}
+                  </Text>
+                </Stack>
+                {p.status === 'REVIEW' && (
+                  <Stack direction='row' gap={2}>
+                    <Button
+                      variant='destructive'
+                      size='sm'
+                      onClick={() => handleStatus(p.id, 'REJECTED')}
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      variant='default'
+                      size='sm'
+                      onClick={() => handleStatus(p.id, 'APPROVED')}
+                    >
+                      Approve
+                    </Button>
+                  </Stack>
+                )}
+              </Stack>
+              <div className='prose prose-sm max-w-none text-slate-600'>
+                <div className='whitespace-pre-wrap'>{p.content}</div>
               </div>
-              {p.status === 'REVIEW' && (
-                <div className='flex gap-2'>
-                  <button
-                    onClick={() => handleStatus(p.id, 'REJECTED')}
-                    className='px-3 py-1 text-xs font-semibold text-rose-700 bg-rose-50 rounded-full hover:bg-rose-100'
-                  >
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => handleStatus(p.id, 'APPROVED')}
-                    className='px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-full hover:bg-emerald-100'
-                  >
-                    Approve
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className='prose prose-sm max-w-none text-slate-600 mb-4'>
-              <div className='whitespace-pre-wrap'>{p.content}</div>
-            </div>
-            <div className='bg-slate-50 p-4 rounded-xl text-sm text-slate-700'>
-              <div className='font-medium mb-1'>Pricing & Terms</div>
-              <div className='whitespace-pre-wrap'>{p.pricing}</div>
-            </div>
-          </div>
+              <div className='bg-slate-50 p-4 rounded-xl text-sm text-slate-700'>
+                <div className='font-medium mb-1'>Pricing & Terms</div>
+                <div className='whitespace-pre-wrap'>{p.pricing}</div>
+              </div>
+            </Stack>
+          </Card>
         ))}
         {visibleProposals.length === 0 && (
           <div className='text-center py-12 text-slate-500 bg-slate-50 rounded-3xl border border-dashed border-slate-200'>
             No proposals available for review.
           </div>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

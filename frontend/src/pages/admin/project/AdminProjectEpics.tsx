@@ -10,6 +10,14 @@ import {
 } from '../../../types/domain';
 import { Modal } from '../../../components/ui/Modal';
 import { useDomainModal } from '../../../components/domain/DomainModalProvider';
+import { Stack } from '../../../components/ui/container';
+import { Card } from '../../../components/ui/card';
+import { Heading, Text } from '../../../components/ui/typography';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Textarea } from '../../../components/ui/textarea';
+import { Tag } from '../../../components/ui/tag';
+import { Plus } from 'lucide-react';
 
 const EPIC_COLORS = [
   '#64748b', // Slate
@@ -291,6 +299,7 @@ export default function AdminProjectEpics() {
       for (const storyId of selectedStoryIds) {
         const story = currentProject.stories.find((s) => s.id === storyId);
         if (!story) continue;
+
         currentProject = await projectService.updateStory(
           currentProject.id,
           storyId,
@@ -320,35 +329,36 @@ export default function AdminProjectEpics() {
   };
 
   return (
-    <section className='rounded-3xl border border-white/60 bg-white/95 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.08)] space-y-6 backdrop-blur'>
+    <Card className='space-y-6'>
       <div className='flex items-center justify-between gap-3'>
         <div>
-          <h2 className='text-xl font-semibold text-slate-900'>Epics</h2>
-          <p className='text-sm text-slate-500'>
+          <Heading level='h2' className='text-xl'>
+            Epics
+          </Heading>
+          <Text variant='body' className='text-text-muted'>
             Shape the big rocks for this project.
-          </p>
+          </Text>
         </div>
-        <button
-          type='button'
+        <Button
           onClick={() => setCreateOpen(true)}
-          className='rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 px-5 py-2 text-sm font-semibold text-white shadow-lg hover:from-sky-600 hover:to-indigo-600'
+          className='bg-brand-solid hover:bg-brand-solid/90 border-0 text-white'
         >
           New epic
-        </button>
+        </Button>
       </div>
       <div className='grid gap-6 lg:grid-cols-[minmax(0,1.4fr),minmax(0,1fr)]'>
-        <ul className='space-y-3'>
+        <Stack gap={3}>
           {project.epics.map((epic) => {
             const isSelected = selectedEpic?.id === epic.id;
             return (
-              <li key={epic.id}>
+              <div key={epic.id}>
                 <button
                   type='button'
                   onClick={() => setSelectedEpicId(epic.id)}
-                  className={`w-full rounded-2xl border bg-gradient-to-r from-white via-white to-slate-50 p-4 text-left transition shadow-sm hover:shadow-md ${
+                  className={`w-full rounded-2xl border p-4 text-left transition shadow-sm hover:shadow-md ${
                     isSelected
-                      ? 'border-sky-400 shadow-[0_15px_35px_rgba(14,165,233,0.25)]'
-                      : 'border-slate-200 hover:border-sky-200'
+                      ? 'border-brand-solid bg-surface-raised shadow-[0_15px_35px_rgba(14,165,233,0.15)]'
+                      : 'border-border-subtle bg-surface hover:border-brand-soft'
                   }`}
                 >
                   <div className='flex items-center gap-2'>
@@ -356,34 +366,37 @@ export default function AdminProjectEpics() {
                       className='w-3 h-3 rounded-full'
                       style={{ backgroundColor: epic.color }}
                     />
-                    <span className='font-semibold text-slate-900'>
+                    <Text weight='semibold' className='text-text-primary'>
                       {epic.name}
-                    </span>
-                    <span className='text-xs px-2 py-1 rounded bg-white border ml-2'>
+                    </Text>
+                    <Tag variant='outline' className='ml-2'>
                       {epic.status.replace('_', ' ').toLowerCase()}
-                    </span>
+                    </Tag>
                   </div>
                   {epic.clientSummary && (
-                    <p className='mt-1 text-xs text-slate-600 line-clamp-2'>
+                    <Text
+                      variant='caption'
+                      className='mt-1 text-text-muted line-clamp-2'
+                    >
                       {epic.clientSummary}
-                    </p>
+                    </Text>
                   )}
                 </button>
-              </li>
+              </div>
             );
           })}
           {project.epics.length === 0 && (
-            <li className='text-sm text-slate-500'>
+            <Text variant='small' className='text-text-muted'>
               No epics yet. Use the form above to add your first one.
-            </li>
+            </Text>
           )}
-        </ul>
+        </Stack>
 
         <form onSubmit={handleQuickAdd} className='mt-4'>
           <div className='relative'>
-            <input
+            <Input
               type='text'
-              className='w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500'
+              className='w-full pr-12'
               placeholder='Quick add epic...'
               value={quickAddName}
               onChange={(e) => setQuickAddName(e.target.value)}
@@ -392,22 +405,15 @@ export default function AdminProjectEpics() {
             <button
               type='submit'
               disabled={!quickAddName.trim() || quickAdding}
-              className='absolute right-2 top-2 rounded-lg bg-slate-100 p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-700 disabled:opacity-50'
+              className='absolute right-2 top-2 rounded-lg bg-surface-alt p-1.5 text-text-muted hover:bg-surface-raised hover:text-text-primary disabled:opacity-50'
             >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 20 20'
-                fill='currentColor'
-                className='h-4 w-4'
-              >
-                <path d='M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z' />
-              </svg>
+              <Plus className='h-4 w-4' />
             </button>
           </div>
         </form>
 
         {selectedEpic && (
-          <div className='space-y-4 rounded-2xl border border-sky-100/70 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.08)]'>
+          <Card className='space-y-4 border-border-subtle shadow-[0_20px_55px_rgba(15,23,42,0.04)]'>
             <form onSubmit={handleUpdateEpic} className='space-y-4'>
               <div className='flex items-center justify-between gap-3'>
                 <div className='flex items-center gap-2'>
@@ -418,7 +424,7 @@ export default function AdminProjectEpics() {
                     }}
                   />
                   <input
-                    className='text-sm font-semibold text-slate-900 bg-transparent border-b border-dashed border-slate-300 focus:outline-none focus:border-sky-500'
+                    className='text-sm font-semibold text-text-primary bg-transparent border-b border-dashed border-border-subtle focus:outline-none focus:border-brand-solid'
                     value={editingEpic ? editingDraft.name : selectedEpic.name}
                     onChange={(e) => {
                       if (!editingEpic) beginEditEpic(selectedEpic);
@@ -430,25 +436,24 @@ export default function AdminProjectEpics() {
                   />
                 </div>
                 <div className='flex items-center gap-3'>
-                  <span className='text-[11px] uppercase tracking-wide text-slate-500'>
-                    {epicStories.length} stories
-                  </span>
-                  <button
-                    type='button'
-                    className='text-[11px] font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700'
+                  <Text variant='eyebrow'>{epicStories.length} stories</Text>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    className='text-[11px] uppercase tracking-wide text-text-muted hover:text-text-primary h-auto p-0'
                     onClick={() => openEpic(selectedEpic.id)}
                   >
                     Open modal
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               <div className='grid gap-3 md:grid-cols-[minmax(0,1.2fr),minmax(0,0.8fr)]'>
-                <label className='flex flex-col gap-1 text-xs text-slate-600'>
+                <label className='flex flex-col gap-1 text-xs text-text-muted'>
                   Description
-                  <textarea
+                  <Textarea
                     rows={3}
-                    className='rounded-md border border-slate-200 px-2 py-1 text-xs'
+                    className='text-xs'
                     value={
                       editingEpic
                         ? editingDraft.description
@@ -463,11 +468,11 @@ export default function AdminProjectEpics() {
                     }}
                   />
                 </label>
-                <div className='space-y-3 text-xs text-slate-600'>
+                <div className='space-y-3 text-xs text-text-muted'>
                   <label className='flex flex-col gap-1'>
                     Type
                     <select
-                      className='rounded-md border border-slate-200 px-2 py-1 text-xs'
+                      className='rounded-md border border-border-subtle px-2 py-1 text-xs bg-surface'
                       value={
                         editingEpic
                           ? editingDraft.type
@@ -499,7 +504,7 @@ export default function AdminProjectEpics() {
                             (editingEpic
                               ? editingDraft.color
                               : selectedEpic.color) === c
-                              ? 'border-slate-600 ring-1 ring-slate-300 ring-offset-1'
+                              ? 'border-text-muted ring-1 ring-border-subtle ring-offset-1'
                               : 'border-transparent'
                           }`}
                           style={{ backgroundColor: c }}
@@ -516,9 +521,9 @@ export default function AdminProjectEpics() {
                   </div>
                   <label className='flex flex-col gap-1'>
                     Client summary
-                    <textarea
+                    <Textarea
                       rows={2}
-                      className='rounded-md border border-slate-200 px-2 py-1 text-xs'
+                      className='text-xs'
                       value={
                         editingEpic
                           ? editingDraft.clientSummary
@@ -535,11 +540,11 @@ export default function AdminProjectEpics() {
                   </label>
                   {(editingEpic ? editingDraft.type : selectedEpic.type) ===
                     'DEFECT' && (
-                    <div className='space-y-2 border-l-2 border-rose-200 pl-2'>
+                    <div className='space-y-2 border-l-2 border-brand-strong/20 pl-2'>
                       <label className='flex flex-col gap-1'>
                         Reported By
-                        <input
-                          className='rounded-md border border-slate-200 px-2 py-1 text-xs'
+                        <Input
+                          className='text-xs h-8'
                           value={
                             editingEpic
                               ? editingDraft.defectDetails?.reportedBy
@@ -560,7 +565,7 @@ export default function AdminProjectEpics() {
                       <label className='flex flex-col gap-1'>
                         Severity
                         <select
-                          className='rounded-md border border-slate-200 px-2 py-1 text-xs'
+                          className='rounded-md border border-border-subtle px-2 py-1 text-xs bg-surface'
                           value={
                             editingEpic
                               ? editingDraft.defectDetails?.severity
@@ -585,9 +590,9 @@ export default function AdminProjectEpics() {
                       </label>
                       <label className='flex flex-col gap-1'>
                         Impact Summary
-                        <textarea
+                        <Textarea
                           rows={2}
-                          className='rounded-md border border-slate-200 px-2 py-1 text-xs'
+                          className='text-xs'
                           value={
                             editingEpic
                               ? editingDraft.defectDetails?.impactSummary
@@ -607,9 +612,9 @@ export default function AdminProjectEpics() {
                       </label>
                       <label className='flex flex-col gap-1'>
                         Steps to Reproduce
-                        <textarea
+                        <Textarea
                           rows={3}
-                          className='rounded-md border border-slate-200 px-2 py-1 text-xs'
+                          className='text-xs'
                           value={
                             editingEpic
                               ? editingDraft.defectDetails?.stepsToReproduce
@@ -634,12 +639,10 @@ export default function AdminProjectEpics() {
               </div>
 
               <div className='space-y-1'>
-                <p className='text-[11px] font-semibold uppercase tracking-wide text-slate-500'>
-                  Acceptance criteria
-                </p>
-                <textarea
+                <Text variant='eyebrow'>Acceptance criteria</Text>
+                <Textarea
                   rows={4}
-                  className='w-full rounded-md border border-slate-200 px-2 py-1 text-xs'
+                  className='w-full text-xs'
                   placeholder='One check per line'
                   value={
                     editingEpic
@@ -657,31 +660,30 @@ export default function AdminProjectEpics() {
               </div>
 
               <div className='space-y-1'>
-                <p className='text-[11px] font-semibold uppercase tracking-wide text-slate-500'>
-                  Stories in this epic
-                </p>
+                <Text variant='eyebrow'>Stories in this epic</Text>
                 {epicStories.length === 0 ? (
-                  <p className='text-xs text-slate-500'>
+                  <Text variant='caption' className='text-text-muted'>
                     No stories yet. Create stories from the backlog and link
                     them to this epic.
-                  </p>
+                  </Text>
                 ) : (
-                  <ul className='space-y-1 text-xs text-slate-700'>
+                  <ul className='space-y-1 text-xs text-text-primary'>
                     {epicStories.map((story) => (
                       <li
                         key={story.id}
                         className='flex items-center justify-between gap-2'
                       >
-                        <button
-                          type='button'
-                          className='truncate text-left font-semibold text-slate-800 hover:underline'
+                        <Button
+                          variant='link'
+                          size='sm'
+                          className='truncate text-left font-semibold text-text-primary hover:underline h-auto p-0'
                           onClick={() => openStory(story.id)}
                         >
                           {story.title}
-                        </button>
-                        <span className='text-[11px] uppercase tracking-wide text-slate-500'>
+                        </Button>
+                        <Text variant='eyebrow'>
                           {story.stage.toLowerCase()}
-                        </span>
+                        </Text>
                       </li>
                     ))}
                   </ul>
@@ -689,52 +691,54 @@ export default function AdminProjectEpics() {
               </div>
 
               <div className='mt-2 flex flex-wrap items-center justify-between gap-2'>
-                <div className='flex items-center gap-2 text-xs text-slate-500'>
+                <div className='flex items-center gap-2 text-xs text-text-muted'>
                   {editingEpic && (
                     <span>Editing… changes will update this epic.</span>
                   )}
                   {updateError && (
-                    <span className='text-rose-600'>{updateError}</span>
+                    <span className='text-brand-strong'>{updateError}</span>
                   )}
                 </div>
                 <div className='flex gap-2'>
-                  <button
-                    type='button'
+                  <Button
+                    variant='outline'
+                    size='sm'
                     onClick={() => setStoryPickerOpen(true)}
-                    className='rounded-md border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm disabled:opacity-50'
+                    className='border-brand-soft bg-brand-soft/10 text-brand-strong'
                     disabled={updating}
                   >
                     Attach stories
-                  </button>
-                  <button
-                    type='button'
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='sm'
                     onClick={handleDeleteEpic}
-                    className='rounded-md border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-700 disabled:opacity-50'
+                    className='border-brand-strong/20 text-brand-strong'
                     disabled={deleting}
                   >
                     {deleting ? 'Deleting…' : 'Delete epic'}
-                  </button>
+                  </Button>
                   {editingEpic && (
-                    <button
-                      type='button'
+                    <Button
+                      variant='outline'
+                      size='sm'
                       onClick={cancelEditEpic}
-                      className='rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700'
                       disabled={updating}
                     >
                       Cancel
-                    </button>
+                    </Button>
                   )}
-                  <button
+                  <Button
+                    size='sm'
                     type='submit'
-                    className='rounded-md bg-slate-900 px-3 py-1 text-xs font-semibold text-white disabled:opacity-50'
                     disabled={updating || !editingEpic}
                   >
                     {updating ? 'Saving…' : 'Save changes'}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </form>
-          </div>
+          </Card>
         )}
       </div>
       <Modal
@@ -745,55 +749,48 @@ export default function AdminProjectEpics() {
         width='lg'
         actions={
           <>
-            <button
-              type='button'
+            <Button
+              variant='outline'
               onClick={() => setStoryPickerOpen(false)}
-              className='rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700'
               disabled={updating}
             >
               Cancel
-            </button>
-            <button
-              type='button'
+            </Button>
+            <Button
               onClick={handleAttachStories}
-              className='rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50'
               disabled={
                 updating || !selectedEpic || selectedStoryIds.length === 0
               }
             >
               {updating ? 'Attaching…' : 'Attach to epic'}
-            </button>
+            </Button>
           </>
         }
       >
         {selectedEpic ? (
-          <div className='space-y-4 text-sm text-slate-700'>
-            <div className='rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 flex items-center justify-between gap-3'>
+          <Stack gap={4}>
+            <div className='rounded-xl border border-border-subtle bg-surface-alt px-3 py-2 flex items-center justify-between gap-3'>
               <div>
-                <p className='text-xs uppercase tracking-wide text-slate-500'>
-                  Target epic
-                </p>
-                <p className='font-semibold text-slate-900'>
+                <Text variant='eyebrow'>Target epic</Text>
+                <Text weight='semibold' className='text-text-primary'>
                   {selectedEpic.name}
-                </p>
+                </Text>
               </div>
-              <span className='text-xs text-slate-500'>
+              <Text variant='caption' className='text-text-muted'>
                 {selectedStoryIds.length} selected
-              </span>
+              </Text>
             </div>
             <div className='space-y-2'>
-              <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>
-                Show stories from
-              </p>
+              <Text variant='eyebrow'>Show stories from</Text>
               <div className='flex flex-wrap gap-2'>
                 {project.epics.map((epic) => (
                   <label
                     key={epic.id}
-                    className='inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600'
+                    className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-surface px-3 py-1 text-xs text-text-muted'
                   >
                     <input
                       type='checkbox'
-                      className='h-3 w-3 rounded border-slate-300'
+                      className='h-3 w-3 rounded border-border-subtle'
                       checked={filterEpicIds.includes(epic.id)}
                       onChange={() => toggleFilterEpic(epic.id)}
                     />
@@ -805,18 +802,18 @@ export default function AdminProjectEpics() {
                   </label>
                 ))}
               </div>
-              <p className='text-xs text-slate-500'>
+              <Text variant='caption' className='text-text-muted'>
                 Unassigned stories are always shown. Checked epics add their
                 stories to the list with color coding.
-              </p>
+              </Text>
             </div>
-            <div className='max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white'>
+            <div className='max-h-80 overflow-y-auto rounded-xl border border-border-subtle bg-surface'>
               {filteredStoriesForPicker.length === 0 ? (
-                <p className='px-4 py-3 text-xs text-slate-500'>
+                <Text variant='caption' className='px-4 py-3 text-text-muted'>
                   No stories available to attach.
-                </p>
+                </Text>
               ) : (
-                <ul className='divide-y divide-slate-100'>
+                <ul className='divide-y divide-border-subtle'>
                   {filteredStoriesForPicker.map((story) => {
                     const storyEpic = project.epics.find(
                       (e) => e.id === story.epicId
@@ -826,28 +823,38 @@ export default function AdminProjectEpics() {
                       <li key={story.id}>
                         <label
                           className={`flex cursor-pointer items-start gap-3 px-4 py-3 text-xs ${
-                            isSelected ? 'bg-slate-50' : ''
+                            isSelected ? 'bg-surface-alt' : ''
                           }`}
                         >
                           <input
                             type='checkbox'
-                            className='mt-1 h-3 w-3 rounded border-slate-300'
+                            className='mt-1 h-3 w-3 rounded border-border-subtle'
                             checked={isSelected}
                             onChange={() => toggleStorySelection(story.id)}
                           />
                           <div className='flex-1 space-y-1'>
                             <div className='flex items-center justify-between gap-2'>
-                              <p className='font-semibold text-slate-900'>
+                              <Text
+                                weight='semibold'
+                                className='text-text-primary'
+                              >
                                 {story.title}
-                              </p>
-                              <span className='text-[11px] font-semibold text-slate-500'>
+                              </Text>
+                              <Text
+                                variant='caption'
+                                weight='semibold'
+                                className='text-text-muted'
+                              >
                                 {story.points ?? '—'} pts
-                              </span>
+                              </Text>
                             </div>
-                            <p className='line-clamp-2 text-[11px] text-slate-500'>
+                            <Text
+                              variant='caption'
+                              className='line-clamp-2 text-text-muted'
+                            >
                               {story.description || 'No description yet.'}
-                            </p>
-                            <div className='flex items-center justify-between gap-2 text-[11px] text-slate-500'>
+                            </Text>
+                            <div className='flex items-center justify-between gap-2 text-[11px] text-text-muted'>
                               <span>
                                 {storyEpic ? (
                                   <span className='inline-flex items-center gap-1'>
@@ -873,9 +880,11 @@ export default function AdminProjectEpics() {
                 </ul>
               )}
             </div>
-          </div>
+          </Stack>
         ) : (
-          <p className='text-sm text-slate-500'>Select an epic first.</p>
+          <Text variant='body' className='text-text-muted'>
+            Select an epic first.
+          </Text>
         )}
       </Modal>
       <Modal
@@ -885,39 +894,37 @@ export default function AdminProjectEpics() {
         onClose={() => setCreateOpen(false)}
         actions={
           <>
-            <button
-              type='button'
+            <Button
+              variant='outline'
               onClick={() => setCreateOpen(false)}
-              className='rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700'
               disabled={saving}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type='submit'
               form='create-epic-form'
-              className='rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50'
               disabled={saving || !draft.name.trim()}
             >
               {saving ? 'Creating…' : 'Create epic'}
-            </button>
+            </Button>
           </>
         }
       >
         <form
           id='create-epic-form'
-          className='space-y-3 text-sm text-slate-700'
+          className='space-y-3 text-sm text-text-primary'
           onSubmit={handleCreateEpic}
         >
           {error && (
-            <div className='rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700'>
+            <div className='rounded-md border border-brand-strong/20 bg-brand-strong/5 px-3 py-2 text-sm text-brand-strong'>
               {error}
             </div>
           )}
           <label className='flex flex-col gap-1'>
             Type
             <select
-              className='rounded-md border border-slate-300 px-2 py-1'
+              className='rounded-md border border-border-subtle px-2 py-1 bg-surface'
               value={draft.type}
               onChange={(e) =>
                 setDraft((d) => ({ ...d, type: e.target.value as EpicType }))
@@ -931,11 +938,10 @@ export default function AdminProjectEpics() {
             </select>
           </label>
           {draft.type === 'DEFECT' && (
-            <div className='space-y-3 border-l-2 border-rose-200 pl-3'>
+            <div className='space-y-3 border-l-2 border-brand-strong/20 pl-3'>
               <label className='flex flex-col gap-1'>
                 Reported By
-                <input
-                  className='rounded-md border border-slate-300 px-2 py-1'
+                <Input
                   value={draft.defectDetails?.reportedBy || ''}
                   onChange={(e) =>
                     setDraft((d) => ({
@@ -951,7 +957,7 @@ export default function AdminProjectEpics() {
               <label className='flex flex-col gap-1'>
                 Severity
                 <select
-                  className='rounded-md border border-slate-300 px-2 py-1'
+                  className='rounded-md border border-border-subtle px-2 py-1 bg-surface'
                   value={draft.defectDetails?.severity || 'MEDIUM'}
                   onChange={(e) =>
                     setDraft((d) => ({
@@ -971,9 +977,8 @@ export default function AdminProjectEpics() {
               </label>
               <label className='flex flex-col gap-1'>
                 Impact Summary
-                <textarea
+                <Textarea
                   rows={2}
-                  className='rounded-md border border-slate-300 px-2 py-1'
                   value={draft.defectDetails?.impactSummary || ''}
                   onChange={(e) =>
                     setDraft((d) => ({
@@ -988,9 +993,8 @@ export default function AdminProjectEpics() {
               </label>
               <label className='flex flex-col gap-1'>
                 Steps to Reproduce
-                <textarea
+                <Textarea
                   rows={3}
-                  className='rounded-md border border-slate-300 px-2 py-1'
                   value={draft.defectDetails?.stepsToReproduce || ''}
                   onChange={(e) =>
                     setDraft((d) => ({
@@ -1007,8 +1011,7 @@ export default function AdminProjectEpics() {
           )}
           <label className='flex flex-col gap-1'>
             Name
-            <input
-              className='rounded-md border border-slate-300 px-2 py-1'
+            <Input
               placeholder='Epic name'
               value={draft.name}
               onChange={(e) =>
@@ -1018,7 +1021,7 @@ export default function AdminProjectEpics() {
             />
           </label>
           <div className='flex flex-col gap-2'>
-            <span className='text-sm text-slate-600'>Color</span>
+            <span className='text-sm text-text-muted'>Color</span>
             <div className='flex flex-wrap gap-2'>
               {EPIC_COLORS.map((c) => (
                 <button
@@ -1026,7 +1029,7 @@ export default function AdminProjectEpics() {
                   type='button'
                   className={`h-6 w-6 rounded-full border transition hover:scale-110 ${
                     draft.color === c
-                      ? 'border-slate-600 ring-1 ring-slate-300 ring-offset-1'
+                      ? 'border-text-muted ring-1 ring-border-subtle ring-offset-1'
                       : 'border-transparent'
                   }`}
                   style={{ backgroundColor: c }}
@@ -1037,9 +1040,8 @@ export default function AdminProjectEpics() {
           </div>
           <label className='flex flex-col gap-1'>
             Description
-            <textarea
+            <Textarea
               rows={3}
-              className='rounded-md border border-slate-300 px-2 py-1'
               placeholder='Short description of the outcome'
               value={draft.description}
               onChange={(e) =>
@@ -1049,9 +1051,8 @@ export default function AdminProjectEpics() {
           </label>
           <label className='flex flex-col gap-1'>
             Client summary (optional)
-            <textarea
+            <Textarea
               rows={2}
-              className='rounded-md border border-slate-300 px-2 py-1'
               placeholder='One or two lines you would say to the client'
               value={draft.clientSummary ?? ''}
               onChange={(e) =>
@@ -1061,9 +1062,8 @@ export default function AdminProjectEpics() {
           </label>
           <label className='flex flex-col gap-1'>
             Acceptance criteria (one per line)
-            <textarea
+            <Textarea
               rows={4}
-              className='rounded-md border border-slate-300 px-2 py-1'
               placeholder={'User can...\nData is...\nReporting shows...'}
               value={draft.acceptanceCriteria.join('\n')}
               onChange={(e) =>
@@ -1079,6 +1079,6 @@ export default function AdminProjectEpics() {
           </label>
         </form>
       </Modal>
-    </section>
+    </Card>
   );
 }

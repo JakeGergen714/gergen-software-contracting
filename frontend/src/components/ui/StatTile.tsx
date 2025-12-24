@@ -13,7 +13,7 @@ interface StatTileProps {
 
 const accentMap: Record<NonNullable<StatTileProps['accent']>, string> = {
   brand: 'border-brand/20',
-  emerald: 'border-emerald-200',
+  emerald: 'border-stone-200',
   amber: 'border-amber-200',
   neutral: 'border-border-subtle',
 };

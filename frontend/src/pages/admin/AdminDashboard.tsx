@@ -5,6 +5,15 @@ import { useAuthContext } from '../../context/AuthContext';
 import { useServices } from '../../context/ServiceContext';
 import { BusinessOverview } from '../../types/domain';
 import { stageCopy, stageOrder } from '../../components/project/stageMeta';
+import {
+  Stack,
+  Heading,
+  Text,
+  Kicker,
+  Card,
+  Tag,
+  Button,
+} from '../../components/ui/design-system';
 
 export default function AdminDashboard() {
   const { session } = useAuthContext();
@@ -48,7 +57,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div
-        className='min-h-[40vh] flex items-center justify-center text-slate-500'
+        className='min-h-[40vh] flex items-center justify-center text-text-muted'
         data-testid='admin-loading'
       >
         Loading admin overview…
@@ -59,7 +68,7 @@ export default function AdminDashboard() {
   if (!session || !overview) {
     return (
       <div
-        className='min-h-[40vh] flex items-center justify-center text-slate-500'
+        className='min-h-[40vh] flex items-center justify-center text-text-muted'
         data-testid='admin-empty-session'
       >
         Admin session not available.
@@ -68,29 +77,25 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className='space-y-8' data-testid='admin-workspace-layout'>
+    <Stack data-testid='admin-workspace-layout'>
       <Helmet>
         <title>Admin workspace | Gergen Software</title>
       </Helmet>
-      <section className='bg-white rounded-2xl border border-slate-200 p-8 shadow-sm'>
-        <div className='flex flex-col gap-4'>
+      <Card className='p-8'>
+        <Stack>
           <div>
-            <p className='text-xs uppercase tracking-wider text-slate-500 font-bold mb-1'>
-              Delivery admin
-            </p>
-            <h1 className='text-3xl font-display font-bold text-slate-900'>
-              Portfolio overview
-            </h1>
-            <p className='text-slate-600 mt-2 max-w-2xl'>
+            <Kicker>Delivery admin</Kicker>
+            <Heading level='h1'>Portfolio overview</Heading>
+            <Text variant='muted' className='mt-2 max-w-2xl'>
               Track every client project, approvals, and milestones in one
               place.
-            </p>
+            </Text>
           </div>
           <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4'>
             {stageStats.map((stat) => (
               <div
                 key={stat.stage}
-                className='bg-slate-50 rounded-xl border border-slate-200 px-5 py-4'
+                className='bg-surface-alt rounded-xl border border-border-subtle px-5 py-4'
                 data-testid={
                   stat.stage === 'REQUIREMENTS'
                     ? 'admin-stat-total-projects'
@@ -99,61 +104,55 @@ export default function AdminDashboard() {
                     : undefined
                 }
               >
-                <p className='text-xs uppercase text-slate-500 tracking-wide font-semibold mb-1'>
-                  {stat.label}
-                </p>
-                <p className='text-3xl font-bold text-slate-900'>
+                <Kicker className='mb-1'>{stat.label}</Kicker>
+                <p className='text-3xl font-bold text-text-primary'>
                   {stat.count}
                 </p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Stack>
+      </Card>
 
-      <section className='grid lg:grid-cols-3 gap-6'>
-        <div className='lg:col-span-2 space-y-4'>
+      <div className='grid lg:grid-cols-3 gap-6'>
+        <Stack className='lg:col-span-2'>
           <div className='flex items-center justify-between'>
             <div>
-              <h2 className='text-xl font-display font-semibold text-slate-900'>
-                Projects
-              </h2>
-              <p className='text-sm text-slate-500'>
+              <Heading level='h2'>Projects</Heading>
+              <Text variant='small' className='text-text-muted'>
                 Active engagements for {overview.business.name}.
-              </p>
+              </Text>
             </div>
           </div>
           {projects.length > 0 ? (
             projects.map((proj) => (
-              <div
+              <Card
                 key={proj.id}
-                className='bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all duration-200'
+                className='p-6 hover:shadow-md transition-all duration-200'
               >
                 <div className='flex flex-wrap items-start justify-between gap-3'>
                   <div>
-                    <p className='text-xs uppercase text-slate-500 tracking-wide font-bold mb-1'>
+                    <Kicker>
                       {proj.approvalState.replace('_', ' ').toLowerCase()}
-                    </p>
-                    <h3 className='text-xl font-display font-semibold text-slate-900'>
+                    </Kicker>
+                    <Heading level='h3' className='mt-1'>
                       {proj.name}
-                    </h3>
-                    <p className='text-sm text-slate-600 mt-1'>
+                    </Heading>
+                    <Text variant='small' className='mt-1'>
                       {proj.description}
-                    </p>
+                    </Text>
                   </div>
                   <div className='text-right'>
-                    <span className='text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100'>
-                      {stageCopy[proj.stage].title}
-                    </span>
-                    <p className='text-xs text-slate-400 mt-2'>
+                    <Tag variant='soft'>{stageCopy[proj.stage].title}</Tag>
+                    <Text variant='small' className='mt-2 text-text-muted'>
                       Updated {new Date(proj.updatedAt).toLocaleDateString()}
-                    </p>
+                    </Text>
                   </div>
                 </div>
                 {proj.statusNote && (
-                  <div className='mt-4 flex items-start gap-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100'>
+                  <div className='mt-4 flex items-start gap-2 text-sm text-text-muted bg-surface-alt p-3 rounded-lg border border-border-subtle'>
                     <svg
-                      className='w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0'
+                      className='w-4 h-4 mt-0.5 text-text-muted flex-shrink-0'
                       fill='none'
                       viewBox='0 0 24 24'
                       stroke='currentColor'
@@ -169,24 +168,20 @@ export default function AdminDashboard() {
                   </div>
                 )}
                 <div className='flex flex-wrap gap-3 mt-5 text-sm'>
-                  <Link
-                    to={`/admin/projects/${proj.id}`}
-                    className='inline-flex items-center rounded-xl bg-slate-900 px-4 py-2.5 text-white font-semibold hover:bg-slate-800 transition-colors shadow-sm'
-                  >
-                    Manage
-                  </Link>
-                  <Link
-                    to={`/business/projects/${proj.id}`}
-                    className='inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-700 font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors'
-                  >
-                    View client page
-                  </Link>
+                  <Button asChild>
+                    <Link to={`/admin/projects/${proj.id}`}>Manage</Link>
+                  </Button>
+                  <Button variant='outline' asChild>
+                    <Link to={`/business/projects/${proj.id}`}>
+                      View client page
+                    </Link>
+                  </Button>
                 </div>
-              </div>
+              </Card>
             ))
           ) : (
-            <div className='bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center'>
-              <div className='mx-auto h-12 w-12 text-slate-300 mb-4'>
+            <Card className='border-dashed border-border-subtle p-12 text-center'>
+              <div className='mx-auto h-12 w-12 text-text-muted mb-4'>
                 <svg fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                   <path
                     strokeLinecap='round'
@@ -196,41 +191,41 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <h3 className='text-lg font-medium text-slate-900'>
+              <Heading level='h3' className='text-lg'>
                 No projects yet
-              </h3>
-              <p className='mt-1 text-slate-500'>
+              </Heading>
+              <Text variant='muted' className='mt-1'>
                 Create one from the client dashboard to populate this view.
-              </p>
-            </div>
+              </Text>
+            </Card>
           )}
-        </div>
+        </Stack>
 
-        <div className='bg-white rounded-2xl border border-slate-200 p-6 shadow-sm h-fit sticky top-24'>
+        <Card className='p-6 h-fit sticky top-24'>
           <div className='mb-4'>
-            <h3 className='text-lg font-display font-semibold text-slate-900'>
+            <Heading level='h3' className='text-lg'>
               Recent updates
-            </h3>
-            <p className='text-sm text-slate-500'>
+            </Heading>
+            <Text variant='small' className='text-text-muted'>
               Last touched items for quick follow-up.
-            </p>
+            </Text>
           </div>
           {recentlyTouched.length > 0 ? (
             <div className='space-y-3'>
               {recentlyTouched.map((proj) => (
                 <div
                   key={proj.id}
-                  className='group block rounded-xl border border-slate-100 bg-slate-50 p-3 hover:bg-white hover:border-blue-200 hover:shadow-sm transition-all duration-200 cursor-pointer'
+                  className='group block rounded-xl border border-border-subtle bg-surface-alt p-3 hover:bg-surface hover:border-brand-soft hover:shadow-sm transition-all duration-200 cursor-pointer'
                 >
-                  <div className='flex items-center justify-between text-slate-900 font-medium mb-1'>
-                    <span className='group-hover:text-blue-700 transition-colors'>
+                  <div className='flex items-center justify-between text-text-primary font-medium mb-1'>
+                    <span className='group-hover:text-brand-solid transition-colors'>
                       {proj.name}
                     </span>
-                    <span className='text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-500'>
+                    <Tag variant='outline' className='text-[10px] py-0.5'>
                       {stageCopy[proj.stage].title}
-                    </span>
+                    </Tag>
                   </div>
-                  <p className='text-xs text-slate-500'>
+                  <Text variant='small' className='text-xs text-text-muted'>
                     Updated{' '}
                     {new Date(proj.updatedAt).toLocaleString(undefined, {
                       month: 'short',
@@ -238,17 +233,17 @@ export default function AdminDashboard() {
                       hour: 'numeric',
                       minute: 'numeric',
                     })}
-                  </p>
+                  </Text>
                 </div>
               ))}
             </div>
           ) : (
-            <p className='text-sm text-slate-500 italic'>
+            <Text variant='small' className='italic text-text-muted'>
               Nothing updated yet.
-            </p>
+            </Text>
           )}
-        </div>
-      </section>
-    </div>
+        </Card>
+      </div>
+    </Stack>
   );
 }
