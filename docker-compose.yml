@@ -56,9 +56,9 @@ services:
         - action: rebuild
           path: ./backend/src
 
-  web:
+  portal:
     build:
-      context: ./frontend
+      context: ./portal
       dockerfile: Dockerfile
       target: dev
     environment:
@@ -78,7 +78,7 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./frontend
+          path: ./portal
           target: /app
           ignore:
             - node_modules/
@@ -86,9 +86,35 @@ services:
             - .git/
             - .vite/
         - action: rebuild
-          path: ./frontend/package.json
+          path: ./portal/package.json
         - action: rebuild
-          path: ./frontend/package-lock.json
+          path: ./portal/package-lock.json
+
+  website:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "5174:5173"
+    command: ["npm","run","dev","--","--host","0.0.0.0"]
+    develop:
+      watch:
+        - action: sync
+          path: ./website
+          target: /app
+          ignore:
+            - node_modules/
+            - dist/
+            - .git/
+            - .vite/
+        - action: rebuild
+          path: ./website/package.json
+        - action: rebuild
+          path: ./website/package-lock.json
 
 volumes:
   pgdata:

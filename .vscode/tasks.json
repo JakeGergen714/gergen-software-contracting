@@ -11,9 +11,18 @@
 			"group": "build"
 		},
 		{
-			"label": "Typecheck frontend",
+			"label": "Typecheck portal",
 			"type": "shell",
-			"command": "npm -s --prefix frontend run build",
+			"command": "npm -s --prefix portal run build",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck website",
+			"type": "shell",
+			"command": "npm -s --prefix website run build",
 			"problemMatcher": [
 				"$eslint-stylish"
 			],

@@ -1,6 +1,6 @@
 ## API Contracts
 
-This document summarizes the main project-delivery endpoints, their HTTP methods and paths, and the primary request/response DTOs. All responses use JSON with enums serialized as uppercase strings (mirrored by `frontend/src/types/domain.ts`).
+This document summarizes the main project-delivery endpoints, their HTTP methods and paths, and the primary request/response DTOs. All responses use JSON with enums serialized as uppercase strings (mirrored by `portal/src/types/domain.ts`).
 
 ### Projects
 
@@ -148,7 +148,7 @@ This document summarizes the main project-delivery endpoints, their HTTP methods
 ### Enum Representation
 
 - All enums are serialized as strings in JSON.
-- Frontend domain types (`frontend/src/types/domain.ts`) mirror these values as string unions:
+- Frontend domain types (`portal/src/types/domain.ts`) mirror these values as string unions:
   - `ProjectStage`, `ProjectApprovalState`, `EpicStatus`, `StoryStage`, `SprintStatus`, `Meeting.type`, and user `role`.
 
 ## API Contracts

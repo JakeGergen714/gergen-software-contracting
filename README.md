@@ -3,13 +3,14 @@
 This monorepo contains:
 
 - backend/ — Spring Boot API (Java 21, PostgreSQL, Flyway, Keycloak JWT)
-- frontend/ — React + Vite + Tailwind SPA (Keycloak auth)
-- docker-compose.yml — Dev stack: Postgres, Keycloak, API, Web
+- portal/ — React + Vite + Tailwind SPA (Keycloak auth) - The Client Portal
+- website/ — React + Vite + Tailwind SPA - The Public Marketing Site
+- docker-compose.yml — Dev stack: Postgres, Keycloak, API, Portal, Website
 - keycloak/realm-export — Realm JSON with roles, clients, demo users
 
 Quickstart (dev):
 
-1. Copy `frontend/.env.example` → `frontend/.env` (override URLs/client IDs if you run on something other than localhost)
+1. Copy `portal/.env.example` → `portal/.env` (override URLs/client IDs if you run on something other than localhost)
 2. Build + launch all services with Docker Compose
 
 Windows PowerShell:
@@ -24,7 +25,8 @@ Services:
 - Postgres: localhost:5432 (postgres/postgres)
 - Keycloak: http://localhost:8081 (admin/admin) — realm + demo data auto-imported
 - API: http://localhost:8080 (auth enforced, JWTs from Keycloak)
-- Web: http://localhost:5173 (Vite dev server inside Docker)
+- Portal: http://localhost:5173 (Vite dev server inside Docker)
+- Website: http://localhost:5174 (Vite dev server inside Docker)
 
 Portal demo users (Keycloak realm `client-portal`):
 
@@ -51,37 +53,37 @@ Notes:
 | backend   | `KEYCLOAK_ISSUER_URI`                                       | `http://keycloak:8080/realms/client-portal`     | Internal issuer for JWT validation                                 |
 | backend   | `CORS_ALLOWED_ORIGINS`                                      | `http://localhost:5173`                         | Browser origins allowed to hit the API                             |
 | backend   | `DISABLE_AUTH`                                              | `false`                                         | Toggles DevSecurityConfig (should remain false except for testing) |
-| frontend  | `VITE_API_BASE_URL`                                         | `http://localhost:8080`                         | Root API URL (no trailing slash)                                   |
-| frontend  | `VITE_KEYCLOAK_URL`                                         | `http://localhost:8081`                         | Browser-facing Keycloak base URL                                   |
-| frontend  | `VITE_KEYCLOAK_REALM`                                       | `client-portal`                                 | Realm to use                                                       |
-| frontend  | `VITE_KEYCLOAK_CLIENT_ID`                                   | `client-portal-web`                             | Public SPA client                                                  |
-| frontend  | `VITE_PORTAL_BUSINESS_ID`                                   | `11111111-1111-1111-1111-111111111111`          | Business UUID that matches backend seed data                       |
+| portal    | `VITE_API_BASE_URL`                                         | `http://localhost:8080`                         | Root API URL (no trailing slash)                                   |
+| portal    | `VITE_KEYCLOAK_URL`                                         | `http://localhost:8081`                         | Browser-facing Keycloak base URL                                   |
+| portal    | `VITE_KEYCLOAK_REALM`                                       | `client-portal`                                 | Realm to use                                                       |
+| portal    | `VITE_KEYCLOAK_CLIENT_ID`                                   | `client-portal-web`                             | Public SPA client                                                  |
+| portal    | `VITE_PORTAL_BUSINESS_ID`                                   | `11111111-1111-1111-1111-111111111111`          | Business UUID that matches backend seed data                       |
 
-Set the Vite variables either via `frontend/.env` (local dev) or Docker env/ARGs. The docker-compose definition already provides sane defaults for running the whole stack on localhost.
+Set the Vite variables either via `portal/.env` (local dev) or Docker env/ARGs. The docker-compose definition already provides sane defaults for running the whole stack on localhost.
 
 ## 🧭 Browser end-to-end tests (Playwright)
 
 Requirements
 
 1. Stack running locally (`docker compose up --build`) so the SPA, API, Keycloak, and Postgres are reachable.
-2. Copy `frontend/.env.e2e.example` → `frontend/.env.e2e` if you change demo credentials or hostnames.
-3. Install Playwright browser binaries once per machine: `npx playwright install` (run from `frontend/`).
+2. Copy `portal/.env.e2e.example` → `portal/.env.e2e` if you change demo credentials or hostnames.
+3. Install Playwright browser binaries once per machine: `npx playwright install` (run from `portal/`).
 
 Run headless tests from the repo root:
 
 ```powershell
 # Execute from the repo root
 docker compose up --build -d
-npm --prefix frontend install
-npx --prefix frontend playwright install   # first run only
-npm --prefix frontend run test:e2e
+npm --prefix portal install
+npx --prefix portal playwright install   # first run only
+npm --prefix portal run test:e2e
 ```
 
 Debug options:
 
-- `npm --prefix frontend run test:e2e -- --headed --project=chromium`
-- `npm --prefix frontend run test:e2e:ui` to open Playwright Test Runner
-- Traces/screenshots live under `frontend/test-results/` after each run
+- `npm --prefix portal run test:e2e -- --headed --project=chromium`
+- `npm --prefix portal run test:e2e:ui` to open Playwright Test Runner
+- Traces/screenshots live under `portal/test-results/` after each run
 
 Tests currently automate Keycloak SSO (admin + client demo users) and then assert the relevant workspace renders. They will fail until the underlying auth/integration issue is resolved, giving you fast feedback each time you tweak the stack.
 

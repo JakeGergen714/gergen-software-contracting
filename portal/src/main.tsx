@@ -2,10 +2,6 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import Home from './pages/Home';
-import About from './pages/About';
-import FAQ from './pages/FAQ';
-import GetStarted from './pages/GetStarted';
 import Login from './pages/Login';
 import BusinessDashboard from './pages/business/BusinessDashboard';
 import BusinessWorkspaceLayout from './pages/business/BusinessWorkspaceLayout';
@@ -48,12 +44,9 @@ createRoot(document.getElementById('root')!).render(
           <BrowserRouter>
             <Routes>
               <Route element={<SiteLayout />}>
-                <Route path='/' element={<Home />} />
-                <Route path='/about' element={<About />} />
-                <Route path='/faq' element={<FAQ />} />
-                <Route path='/start' element={<GetStarted />} />
+                <Route path='/' element={<Navigate to='/login' replace />} />
                 <Route path='/login' element={<Login />} />
-                <Route path='*' element={<Navigate to='/' replace />} />
+                <Route path='*' element={<Navigate to='/login' replace />} />
               </Route>
 
               <Route element={<ProtectedRoute />}>
