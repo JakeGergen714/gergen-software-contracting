@@ -1,0 +1,1 @@
+{"root":["./vite.config.ts","./playwright.config.ts","./tests/e2e/admin.spec.ts","./tests/e2e/auth.spec.ts","./tests/e2e/client.spec.ts","./tests/e2e/meeting-and-tagging.spec.ts","./tests/e2e/fixtures/apiclient.ts","./tests/e2e/fixtures/auth.ts"],"version":"5.6.2"}
