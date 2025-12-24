@@ -1,6 +1,8 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
 import { PageShell } from '../ui/PageShell';
+import { useEffect, useState } from 'react';
+import { cn } from '../../utils/cn';
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   isActive
@@ -9,10 +11,28 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function SiteLayout() {
   const { session, logout } = useAuthContext();
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className='min-h-screen flex flex-col bg-surface-alt text-text-primary'>
-      <header className='sticky top-0 z-30 border-b border-border-subtle/70 bg-surface/90 backdrop-blur-xl'>
+      <header
+        className={cn(
+          'fixed top-0 left-0 right-0 z-30 transition-all duration-500 ease-in-out transform',
+          isHome && !scrolled
+            ? '-translate-y-full opacity-0'
+            : 'translate-y-0 opacity-100 border-b border-border-subtle/70 bg-surface/90 backdrop-blur-xl'
+        )}
+      >
         <div className='grid-shell h-16 flex items-center justify-between gap-4'>
           <Link to='/' className='font-display text-xl font-semibold'>
             Gergen Software
@@ -54,9 +74,13 @@ export function SiteLayout() {
         </div>
       </header>
       <main className='flex-1'>
-        <PageShell className='py-10 sm:py-12'>
+        {isHome ? (
           <Outlet />
-        </PageShell>
+        ) : (
+          <PageShell className='py-10 sm:py-12 pt-24'>
+            <Outlet />
+          </PageShell>
+        )}
       </main>
       <footer className='border-t border-border-subtle bg-surface py-6'>
         <div className='grid-shell flex flex-col gap-3 text-sm text-text-muted sm:flex-row sm:items-center sm:justify-between'>

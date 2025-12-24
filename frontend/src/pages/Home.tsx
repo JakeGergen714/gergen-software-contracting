@@ -95,50 +95,62 @@ const Home: React.FC = () => {
         />
       </Helmet>
 
-      <Card className='relative overflow-hidden bg-surface shadow-elevated border border-border-subtle p-8 sm:p-10 lg:p-12'>
+      <div className='min-h-screen flex flex-col justify-center relative overflow-hidden'>
         <div
           aria-hidden
           className='pointer-events-none absolute inset-0 opacity-40'
           style={{
             background:
-              'radial-gradient(circle at 0% 0%, rgba(24,149,255,0.15), transparent 55%), radial-gradient(circle at 100% 0%, rgba(155,139,255,0.25), transparent 45%)',
+              'radial-gradient(circle at 50% 50%, rgba(24,149,255,0.1), transparent 50%), radial-gradient(circle at 80% 20%, rgba(155,139,255,0.15), transparent 30%)',
           }}
         />
-        <div className='relative'>
-          <div>
-            <Tag variant='soft' className='mb-4'>
-              Full-service product engineering, without the headcount
-            </Tag>
-            <Heading
-              level='h1'
-              variant='display'
-              className='tracking-tight sm:text-5xl lg:text-6xl'
-            >
-              Senior engineering for the life of your software.
-            </Heading>
-            <Text variant='lead' className='mt-6 max-w-2xl'>
-              We build your core software right once—with clean architecture,
-              observability, and automated tests—so it&apos;s cheap to run and
-              easy to change. That&apos;s how we offer full-service development,
-              maintenance, and small features at a price a single senior hire
-              can&apos;t match.
-            </Text>
-            <div className='mt-8 flex flex-wrap gap-3'>
-              <Link to='/start' className='btn-primary'>
+        <div className='grid-shell relative z-10'>
+          <div className='max-w-4xl mx-auto text-center'>
+            <div className='animate-fade-up'>
+              <span className='inline-block mb-6 text-sm font-bold tracking-[0.2em] text-brand-strong uppercase'>
+                Gergen Software
+              </span>
+            </div>
+            <div className='animate-fade-up delay-100'>
+              <Heading
+                level='h1'
+                variant='display'
+                className='tracking-tight text-6xl sm:text-7xl lg:text-8xl mb-8'
+              >
+                Resilient software. <br />
+                <span className='text-text-muted'>By design.</span>
+              </Heading>
+            </div>
+            <div className='animate-fade-up delay-200'>
+              <Text
+                variant='lead'
+                className='max-w-2xl mx-auto text-xl leading-relaxed text-text-muted'
+              >
+                We are a consultancy dedicated to helping businesses succeed
+                through better software. We bring the expertise to solve your
+                hardest problems and the integrity to build solutions that last.
+              </Text>
+            </div>
+            <div className='mt-10 flex flex-wrap justify-center gap-4 animate-fade-up delay-300'>
+              <Link to='/start' className='btn-primary px-8 py-4 text-base'>
                 Start a Project
               </Link>
-              <a href='#getting-started' className='btn-secondary'>
+              <a
+                href='#getting-started'
+                className='btn-secondary px-8 py-4 text-base'
+              >
                 How it works
               </a>
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
-      <Section spacing='none' className='space-y-8'>
-        <PageHeader
-          kicker='WHAT WE HANDLE'
-          title='From net-new features to the unglamorous upkeep'
+      <div className='grid-shell py-24 space-y-32'>
+        <Section spacing='none' className='space-y-8'>
+          <PageHeader
+            kicker='WHAT WE HANDLE'
+            title='From net-new features to the unglamorous upkeep'
           description='We blend product thinking with platform pragmatism so you get momentum without inheriting technical debt.'
           actions={
             <a
@@ -421,6 +433,7 @@ const Home: React.FC = () => {
           </div>
         </Card>
       </Section>
+      </div>
     </Stack>
   );
 };
