@@ -2,66 +2,66 @@
   "hash": "d55758ab",
   "configHash": "ac80d6bf",
   "lockfileHash": "9d421fb0",
-  "browserHash": "da8e2f53",
+  "browserHash": "d887279b",
   "optimized": {
     "react": {
       "src": "../../node_modules/react/index.js",
       "file": "react.js",
-      "fileHash": "9e5df226",
+      "fileHash": "70959ee4",
       "needsInterop": true
     },
     "react-dom/client": {
       "src": "../../node_modules/react-dom/client.js",
       "file": "react-dom_client.js",
-      "fileHash": "3718b6f3",
+      "fileHash": "c0436fda",
       "needsInterop": true
     },
     "react-router-dom": {
       "src": "../../node_modules/react-router-dom/dist/index.js",
       "file": "react-router-dom.js",
-      "fileHash": "7f4614a4",
+      "fileHash": "3d9bd57d",
       "needsInterop": false
     },
     "react-helmet-async": {
       "src": "../../node_modules/react-helmet-async/lib/index.esm.js",
       "file": "react-helmet-async.js",
-      "fileHash": "abcdc096",
+      "fileHash": "c479e092",
       "needsInterop": false
     },
     "react-icons/fi": {
       "src": "../../node_modules/react-icons/fi/index.mjs",
       "file": "react-icons_fi.js",
-      "fileHash": "856936f5",
+      "fileHash": "5c3bed6a",
       "needsInterop": false
     },
     "clsx": {
       "src": "../../node_modules/clsx/dist/clsx.mjs",
       "file": "clsx.js",
-      "fileHash": "5f8c5695",
+      "fileHash": "d3521d28",
       "needsInterop": false
     },
     "tailwind-merge": {
       "src": "../../node_modules/tailwind-merge/dist/bundle-mjs.mjs",
       "file": "tailwind-merge.js",
-      "fileHash": "0b1ab735",
-      "needsInterop": false
-    },
-    "class-variance-authority": {
-      "src": "../../node_modules/class-variance-authority/dist/index.mjs",
-      "file": "class-variance-authority.js",
-      "fileHash": "48bca41b",
+      "fileHash": "8a8912f8",
       "needsInterop": false
     },
     "@radix-ui/react-slot": {
       "src": "../../node_modules/@radix-ui/react-slot/dist/index.mjs",
       "file": "@radix-ui_react-slot.js",
-      "fileHash": "34d5099d",
+      "fileHash": "69e2e580",
+      "needsInterop": false
+    },
+    "class-variance-authority": {
+      "src": "../../node_modules/class-variance-authority/dist/index.mjs",
+      "file": "class-variance-authority.js",
+      "fileHash": "40bf58d6",
       "needsInterop": false
     },
     "keycloak-js": {
       "src": "../../node_modules/keycloak-js/dist/keycloak.mjs",
       "file": "keycloak-js.js",
-      "fileHash": "c54d66fa",
+      "fileHash": "0b9e9eb8",
       "needsInterop": false
     }
   },
@@ -69,11 +69,11 @@
     "chunk-TUX7A2JK": {
       "file": "chunk-TUX7A2JK.js"
     },
-    "chunk-4SFRHSJ3": {
-      "file": "chunk-4SFRHSJ3.js"
-    },
     "chunk-KDVGFZWC": {
       "file": "chunk-KDVGFZWC.js"
+    },
+    "chunk-4SFRHSJ3": {
+      "file": "chunk-4SFRHSJ3.js"
     },
     "chunk-EQCVQC35": {
       "file": "chunk-EQCVQC35.js"
